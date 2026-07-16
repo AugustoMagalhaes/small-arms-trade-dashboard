@@ -3,6 +3,8 @@
 Interactive dashboard for Brazil's firearms foreign trade data (2020–2026).
 Data source: Comex Stat / MDIC (`dados_small_arms.xlsx`).
 
+The online deploy can be seen at: https://augustomagalhaes.github.io/small-arms-trade-dashboard/
+
 ## Setup
 
 ```bash
