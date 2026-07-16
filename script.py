@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -14,6 +15,17 @@ LABELS: dict[int, str] = {
     93020000: "Revólveres e Pistolas",
     93039090: "Outras Armas (pólvora)",
 }
+
+NCM_DESCRICOES = {
+    93020000: "Revólveres e pistolas, exceto os das posições 93.03 ou 93.04.",
+    93032000: "Outras espingardas e carabinas de caça ou de tiro ao alvo, com pelo menos um cano liso",
+    93033000: "Outras espingardas e carabinas de caça ou de tiro ao alvo",
+    93039090: "Outras armas de fogo que utilizam deflagração da pólvora, etc.",
+}
+
+HEADER_FONTE_TEXTO = "Fonte: Comex Stat / MDIC · USD FOB · NCMs: \n" + "\n".join(
+    f"{ncm} ({desc})" for ncm, desc in NCM_DESCRICOES.items()
+)
 
 
 def carregar_dados():
@@ -52,7 +64,7 @@ CORES_CAT = {
     "Espingardas/Carabinas (estriado)": "#22C55E",
     "Espingardas/Carabinas (liso)": "#3B82F6",
     "Revólveres e Pistolas": "#EF4444",
-    "Outras Armas (pólvora)": "#FBBF24",
+    "Outras Armas (pólvora)": "#F97316",
 }
 
 
@@ -69,7 +81,7 @@ def layout_base():
         paper_bgcolor=BG,
         plot_bgcolor=BG2,
         font=dict(family="Inter, Segoe UI, Arial", color=TEXTO, size=13),
-        margin=dict(t=70, b=50, l=70, r=30),
+        margin=dict(t=70, b=50, l=105, r=30),
         xaxis=dict(
             gridcolor=BORDA,
             zerolinecolor=BORDA,
@@ -199,16 +211,7 @@ def fig_saldo(ncms_sel=None, anos_sel=None):
                 x=sub["Ano"],
                 y=sub["Saldo"],
                 name=ncm,
-                marker=dict(
-                    color=cor,
-                    opacity=0.85,
-                    pattern=dict(
-                        shape=["/" if v < 0 else "" for v in sub["Saldo"]],
-                        fgcolor="rgba(255,255,255,0.25)",
-                        size=6,
-                    ),
-                    line=dict(color=cor, width=0),
-                ),
+                marker=dict(color=cor, opacity=0.9),
                 hovertemplate=f"<b>{ncm}</b><br>Ano: %{{x}}<br>Saldo: %{{customdata}}<extra></extra>",
                 customdata=[fmt_usd(v) for v in sub["Saldo"]],
             )
@@ -304,6 +307,7 @@ def fig_heatmap(fluxo="Exportação"):
     hml = layout_base()
     hml["xaxis"] = dict(title="Ano", gridcolor=BORDA, tickfont=dict(color=TEXTO2))
     hml["yaxis"] = dict(gridcolor=BORDA, tickfont=dict(color=TEXTO, size=10))
+    hml["margin"] = dict(t=70, b=50, l=190, r=30)
     fig.update_layout(
         **hml,
         title=dict(
@@ -346,7 +350,6 @@ def fig_donut(fluxo="Exportação", ano=2025):
 
 
 DARK_CSS = f"""
-/* ── Dropdown wrapper (caixa fechada) ── */
 .dash-dropdown-wrapper {{
     background: {BG3} !important;
     border: 1px solid {BORDA} !important;
@@ -358,10 +361,8 @@ DARK_CSS = f"""
     border-radius: 8px !important;
     padding: 6px 10px !important;
 }}
-/* ── Placeholder e valor ── */
 .dash-dropdown-placeholder {{ color: {TEXTO2} !important; }}
 .dash-dropdown-value {{ color: {TEXTO} !important; }}
-/* ── Tags multi-select ── */
 .dash-dropdown-value-item {{
     background: {BG2} !important;
     border: 1px solid {BORDA} !important;
@@ -369,7 +370,6 @@ DARK_CSS = f"""
     color: {TEXTO} !important;
     font-size: 12px !important;
 }}
-/* ── Contador "N selected" ── */
 .dash-dropdown-value-count {{
     background: {BG2} !important;
     color: {TEXTO2} !important;
@@ -378,7 +378,6 @@ DARK_CSS = f"""
     padding: 1px 7px !important;
     font-size: 12px !important;
 }}
-/* ── Ícone seta/clear ── */
 .dash-dropdown-trigger-icon svg,
 .dash-dropdown-trigger-icon svg path,
 .dash-dropdown-trigger-icon svg polyline {{
@@ -386,7 +385,6 @@ DARK_CSS = f"""
     fill: none !important;
 }}
 .dash-dropdown-clear {{ color: {TEXTO2} !important; }}
-/* ── Painel de opções aberto ── */
 .dash-dropdown-content {{
     background: {BG3} !important;
     border: 1px solid {BORDA} !important;
@@ -394,7 +392,6 @@ DARK_CSS = f"""
     box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
     z-index: 9999 !important;
 }}
-/* ── Cada opção ── */
 .dash-dropdown-option {{
     background: {BG3} !important;
     color: {TEXTO} !important;
@@ -406,7 +403,6 @@ DARK_CSS = f"""
     background: {BG2} !important;
     color: {TEXTO} !important;
 }}
-/* ── Barra de busca ── */
 .dash-dropdown-search-container {{
     background: {BG3} !important;
     border-bottom: 1px solid {BORDA} !important;
@@ -418,23 +414,21 @@ DARK_CSS = f"""
     outline: none !important;
 }}
 .dash-dropdown-search input::placeholder {{ color: {TEXTO2} !important; }}
-/* ── Grid container (multi) ── */
 .dash-dropdown-grid-container {{
     background: {BG3} !important;
 }}
-/* ── Ações (clear all, etc.) ── */
 .dash-dropdown-actions {{ background: {BG3} !important; border-top: 1px solid {BORDA} !important; }}
 .dash-dropdown-action-button {{ color: {TEXTO2} !important; }}
 .dash-dropdown-action-button:hover {{ color: {TEXTO} !important; }}
-/* ── Body e root ── */
+
 body, #react-entry-point, ._dash-loading {{
     background-color: {BG} !important;
 }}
-/* ── RangeSlider track e handle ── */
+
 .rc-slider-track {{ background-color: #3B82F6 !important; }}
 .rc-slider-handle {{ border-color: #3B82F6 !important; background: {BG2} !important; }}
 .rc-slider-rail {{ background-color: {BORDA} !important; }}
-/* ── Tooltip do RangeSlider (classe real: dash-slider-tooltip + CSS vars) ── */
+
 .dash-slider-tooltip, [class*="dash-slider-tooltip"] {{
     --Dash-Tooltip-Background-Color: {BG2} !important;
     --Dash-Tooltip-Border-Color: {BORDA} !important;
@@ -543,12 +537,7 @@ def rodar_dash():
                         },
                     ),
                     html.P(
-                        (
-                            "Fonte: Comex Stat / MDIC · USD FOB · NCMs: \n93020000 (Revólveres e pistolas, exceto os das posições 93.03 ou 93.04.)"
-                            "\n93032000 (Outras espingardas e carabinas de caça ou de tiro ao alvo, com pelo menos um cano lisoOutras espingardas e carabinas de caça ou de tiro ao alvo, com pelo menos um cano liso)"
-                            "\n93033000 (Outras espingardas e carabinas de caça ou de tiro ao alvo)"
-                            "\n93039090 (Outras armas de fogo que utilizam deflagração da pólvora, etc.)"
-                        ),
+                        HEADER_FONTE_TEXTO,
                         style={
                             "color": TEXTO2,
                             "fontSize": "0.82rem",
@@ -842,59 +831,523 @@ def rodar_dash():
 
 
 def exportar_html_estatico():
+    """
+    Gera docs/index.html totalmente interativo e estático.
+
+    Diferente de simplesmente chamar fig.to_html() para cada gráfico com
+    parâmetros fixos, aqui os dados são embutidos como JSON e os gráficos
+    são renderizados via Plotly.js no navegador, com os MESMOS controles
+    (checkboxes de NCM, range de anos, seletor de fluxo) que existem na
+    versão Dash sem precisar de servidor Python rodando.
+    """
     os.makedirs("docs", exist_ok=True)
-    ano_default = int(ANOS[-1])
-    graficos_export = [
-        ("📈 Evolução Total", fig_evolucao()),
-        ("⚖️ Saldo Comercial", fig_saldo()),
-        ("📦 Composição — Exportações", fig_composicao("Exportação")),
-        ("📦 Composição — Importações", fig_composicao("Importação")),
-        ("🌡️ Heatmap — Exportações", fig_heatmap("Exportação")),
-        ("🌡️ Heatmap — Importações", fig_heatmap("Importação")),
-        (
-            f"🥧 Participação Exportações {ano_default}",
-            fig_donut("Exportação", ano_default),
-        ),
-        (
-            f"🥧 Participação Importações {ano_default}",
-            fig_donut("Importação", ano_default),
-        ),
-    ]
-    divs_html = ""
-    for i, (titulo, fig) in enumerate(graficos_export):
-        fig.update_layout(height=480)
-        div = fig.to_html(full_html=False, include_plotlyjs=(i == 0))
-        divs_html += f'<section class="card"><h2>{titulo}</h2>{div}</section>'
+
+    records = df.to_dict("records")
+    data_json = json.dumps(records, ensure_ascii=False)
+    ncms_json = json.dumps(NCMS, ensure_ascii=False)
+    cores_json = json.dumps(CORES_CAT, ensure_ascii=False)
+    anos_json = json.dumps([int(a) for a in ANOS])
+
+    header_html = HEADER_FONTE_TEXTO.replace("\n", "<br>")
+
+    js = """
+const DATA = __DATA_JSON__;
+const NCMS = __NCMS_JSON__;
+const CORES_CAT = __CORES_JSON__;
+const ANOS = __ANOS_JSON__;
+
+const BG = "__BG__", BG2 = "__BG2__", BG3 = "__BG3__",
+      BORDA = "__BORDA__", TEXTO = "__TEXTO__", TEXTO2 = "__TEXTO2__";
+
+function fmtUsd(v) {
+    if (v >= 1e6) return "US$ " + (v / 1e6).toFixed(1) + "M";
+    if (v >= 1e3) return "US$ " + Math.round(v / 1e3) + "K";
+    return "US$ " + v.toLocaleString("en-US", {maximumFractionDigits: 0});
+}
+
+function layoutBase() {
+    return {
+        paper_bgcolor: BG, plot_bgcolor: BG2,
+        font: { family: "Inter, Segoe UI, Arial", color: TEXTO, size: 13 },
+        margin: { t: 70, b: 50, l: 105, r: 30 },
+        xaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
+                 tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
+        yaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
+                 tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
+        legend: { bgcolor: "rgba(0,0,0,0)", bordercolor: BORDA, borderwidth: 1,
+                  font: { color: TEXTO }, orientation: "h",
+                  yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
+        hoverlabel: { bgcolor: BG3, bordercolor: BORDA, font: { color: TEXTO } },
+    };
+}
+
+function plotVazio(divId, msg) {
+    const layout = layoutBase();
+    layout.xaxis.visible = false;
+    layout.yaxis.visible = false;
+    layout.height = 200;
+    layout.annotations = [{
+        text: "\u26a0  " + msg, x: 0.5, y: 0.5, xref: "paper", yref: "paper",
+        showarrow: false, font: { size: 15, color: TEXTO2 },
+    }];
+    Plotly.newPlot(divId, [], layout, { displayModeBar: true, responsive: true });
+}
+
+function sumBy(arr, keyFn) {
+    const map = new Map();
+    for (const item of arr) {
+        const k = keyFn(item);
+        map.set(k, (map.get(k) || 0) + item.Valor);
+    }
+    return map;
+}
+
+function filterBase(ncmSel, anoMin, anoMax) {
+    return DATA.filter(d =>
+        ncmSel.includes(d.Label) && d.Ano >= anoMin && d.Ano <= anoMax
+    );
+}
+
+function renderEvolucao(divId, ncmSel, anoMin, anoMax) {
+    const d = filterBase(ncmSel, anoMin, anoMax);
+    const total = d.reduce((s, x) => s + x.Valor, 0);
+    if (d.length === 0 || total === 0) {
+        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+        return;
+    }
+    const traces = [];
+    const specs = [
+        ["Exporta\u00e7\u00e3o", "#3B82F6", "rgba(59,130,246,0.12)"],
+        ["Importa\u00e7\u00e3o", "#EF4444", "rgba(239,68,68,0.12)"],
+    ];
+    for (const [fluxo, cor, rgba] of specs) {
+        const sub = d.filter(x => x.Fluxo === fluxo);
+        if (sub.length === 0) continue;
+        const byAno = sumBy(sub, x => x.Ano);
+        const anos = [...byAno.keys()].sort((a, b) => a - b);
+        const valores = anos.map(a => byAno.get(a));
+        traces.push({
+            x: anos, y: valores, name: fluxo, mode: "lines+markers",
+            line: { color: cor, width: 3 },
+            marker: { size: 9, color: cor, line: { color: BG, width: 2 } },
+            fill: "tozeroy", fillcolor: rgba,
+            customdata: valores.map(fmtUsd),
+            hovertemplate: "<b>%{x}</b><br>" + fluxo + ": %{customdata}<extra></extra>",
+        });
+    }
+    const layout = layoutBase();
+    layout.title = { text: "Evolu\u00e7\u00e3o Total \u2014 Exporta\u00e7\u00e3o vs Importa\u00e7\u00e3o (USD FOB)", font: { size: 15 } };
+    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickmode: "linear", tickangle: 0 };
+    layout.yaxis.title = "USD FOB";
+    layout.yaxis.tickformat = "$,.0f";
+    layout.height = 460;
+    Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+}
+
+function renderSaldo(divId, ncmSel, anoMin, anoMax) {
+    const d = filterBase(ncmSel, anoMin, anoMax);
+    if (d.length === 0) {
+        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+        return;
+    }
+    const traces = [];
+    for (const ncm of NCMS) {
+        if (!ncmSel.includes(ncm)) continue;
+        const sub = d.filter(x => x.Label === ncm);
+        if (sub.length === 0) continue;
+        const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
+        const saldos = anosSet.map(ano => {
+            const exp = sub.filter(x => x.Ano === ano && x.Fluxo === "Exporta\u00e7\u00e3o")
+                            .reduce((s, x) => s + x.Valor, 0);
+            const imp = sub.filter(x => x.Ano === ano && x.Fluxo === "Importa\u00e7\u00e3o")
+                            .reduce((s, x) => s + x.Valor, 0);
+            return exp - imp;
+        });
+        const cor = CORES_CAT[ncm];
+        traces.push({
+            x: anosSet, y: saldos, name: ncm, type: "bar",
+            marker: { color: cor, opacity: 0.9 },
+            customdata: saldos.map(fmtUsd),
+            hovertemplate: "<b>" + ncm + "</b><br>Ano: %{x}<br>Saldo: %{customdata}<extra></extra>",
+        });
+    }
+    const layout = layoutBase();
+    layout.title = { text: "Saldo Comercial por Categoria (Exporta\u00e7\u00e3o \u2212 Importa\u00e7\u00e3o)", font: { size: 15 } };
+    layout.barmode = "group";
+    layout.xaxis.title = "Ano";
+    layout.yaxis.title = "Saldo (USD FOB)";
+    layout.yaxis.tickformat = "$,.0f";
+    layout.height = 460;
+    layout.shapes = [{ type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
+                       line: { color: TEXTO2, width: 1, dash: "dot" } }];
+    Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+}
+
+function renderComposicao(divId, fluxo, ncmSel, anoMin, anoMax) {
+    const d = filterBase(ncmSel, anoMin, anoMax).filter(x => x.Fluxo === fluxo);
+    const total = d.reduce((s, x) => s + x.Valor, 0);
+    if (d.length === 0 || total === 0) {
+        plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros selecionados");
+        return;
+    }
+    const traces = [];
+    for (const ncm of NCMS) {
+        if (!ncmSel.includes(ncm)) continue;
+        const sub = d.filter(x => x.Label === ncm);
+        if (sub.length === 0) continue;
+        const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
+        const valores = anosSet.map(ano => {
+            const v = sub.filter(x => x.Ano === ano).reduce((s, x) => s + x.Valor, 0);
+            return v > 0 ? v : null;
+        });
+        const custom = valores.map(v => v ? fmtUsd(v) : "Sem dados");
+        traces.push({
+            x: anosSet, y: valores, name: ncm, type: "bar",
+            marker: { color: CORES_CAT[ncm] },
+            customdata: custom,
+            hovertemplate: "<b>" + ncm + "</b><br>%{x}: %{customdata}<extra></extra>",
+        });
+    }
+    const layout = layoutBase();
+    layout.title = { text: "Composi\u00e7\u00e3o das " + fluxo + "s por Categoria", font: { size: 15 } };
+    layout.barmode = "stack";
+    layout.xaxis.title = "Ano";
+    layout.yaxis.title = fluxo + " (USD FOB)";
+    layout.yaxis.tickformat = "$,.0f";
+    layout.height = 460;
+    Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+}
+
+function renderHeatmap(divId, fluxo) {
+    const d = DATA.filter(x => x.Fluxo === fluxo);
+    const total = d.reduce((s, x) => s + x.Valor, 0);
+    if (total === 0) {
+        plotVazio(divId, "Nenhum dado de " + fluxo + " para exibir no heatmap");
+        return;
+    }
+    const anosSet = [...new Set(d.map(x => x.Ano))].sort((a, b) => a - b);
+    const z = [], text = [];
+    for (const ncm of NCMS) {
+        const rowZ = [], rowT = [];
+        for (const ano of anosSet) {
+            const v = d.filter(x => x.Label === ncm && x.Ano === ano)
+                       .reduce((s, x) => s + x.Valor, 0);
+            rowZ.push(v > 0 ? v : null);
+            rowT.push(v > 0 ? fmtUsd(v) : "\u2014");
+        }
+        z.push(rowZ); text.push(rowT);
+    }
+    const trace = {
+        z: z, x: anosSet.map(String), y: NCMS, type: "heatmap",
+        colorscale: [
+            [0.0, "#1C2128"], [0.15, "#1D4ED8"], [0.4, "#0EA5E9"],
+            [0.65, "#22C55E"], [0.85, "#F59E0B"], [1.0, "#EF4444"],
+        ],
+        text: text, texttemplate: "%{text}",
+        textfont: { size: 11, color: TEXTO },
+        hoverongaps: false,
+        hovertemplate: "<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
+        colorbar: { title: { text: "USD FOB", font: { color: TEXTO2 } },
+                    tickfont: { color: TEXTO2 }, bgcolor: BG2,
+                    bordercolor: BORDA, outlinecolor: BORDA },
+        zmin: 0,
+    };
+    const layout = layoutBase();
+    layout.title = { text: "Heatmap \u2014 Intensidade de " + fluxo + "s por Categoria e Ano", font: { size: 15 } };
+    layout.xaxis = { title: "Ano", gridcolor: BORDA, tickfont: { color: TEXTO2 } };
+    layout.yaxis = { gridcolor: BORDA, tickfont: { color: TEXTO, size: 10 } };
+    layout.margin = { t: 70, b: 50, l: 190, r: 30 };
+    layout.height = 340;
+    Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
+}
+
+function renderDonut(divId, fluxo, ano) {
+    const d = DATA.filter(x => x.Ano === ano && x.Fluxo === fluxo && x.Valor > 0);
+    if (d.length === 0) {
+        plotVazio(divId, "Nenhum dado de " + fluxo + " em " + ano);
+        return;
+    }
+    const labels = d.map(x => x.Label);
+    const values = d.map(x => x.Valor);
+    const cores = labels.map(l => CORES_CAT[l]);
+    const trace = {
+        labels: labels, values: values, type: "pie", hole: 0.48,
+        marker: { colors: cores, line: { color: BG, width: 2 } },
+        textinfo: "label+percent",
+        textfont: { color: TEXTO, size: 11 },
+        customdata: values.map(fmtUsd),
+        hovertemplate: "<b>%{label}</b><br>%{customdata}<br>%{percent}<extra></extra>",
+    };
+    const layout = layoutBase();
+    delete layout.legend;
+    layout.title = { text: "Participa\u00e7\u00e3o nas " + fluxo + "s \u2014 " + ano, font: { size: 15 } };
+    layout.showlegend = true;
+    layout.legend = { orientation: "v", x: 1.01, y: 0.5, font: { color: TEXTO, size: 11 } };
+    layout.height = 420;
+    Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
+}
+
+function getSelectedNcms() {
+    return [...document.querySelectorAll(".ncm-check:checked")].map(el => el.value);
+}
+function getAnoRange() {
+    const lo = parseInt(document.getElementById("ano-min").value);
+    const hi = parseInt(document.getElementById("ano-max").value);
+    return [Math.min(lo, hi), Math.max(lo, hi)];
+}
+function updateAnoLabel() {
+    const [lo, hi] = getAnoRange();
+    document.getElementById("ano-range-label").textContent = lo + " \u2013 " + hi;
+
+    const min = parseInt(document.getElementById("ano-min").min);
+    const max = parseInt(document.getElementById("ano-min").max);
+    const pctLo = ((lo - min) / (max - min)) * 100;
+    const pctHi = ((hi - min) / (max - min)) * 100;
+    const fill = document.getElementById("ano-track-fill");
+    fill.style.left = pctLo + "%";
+    fill.style.width = (pctHi - pctLo) + "%";
+}
+
+function renderAll() {
+    const ncmSel = getSelectedNcms();
+    const [anoMin, anoMax] = getAnoRange();
+
+    renderEvolucao("graph-evolucao", ncmSel, anoMin, anoMax);
+    renderSaldo("graph-saldo", ncmSel, anoMin, anoMax);
+
+    const compFluxo = document.getElementById("comp-fluxo").value;
+    renderComposicao("graph-composicao", compFluxo, ncmSel, anoMin, anoMax);
+
+    const hmFluxo = document.getElementById("hm-fluxo").value;
+    renderHeatmap("graph-heatmap", hmFluxo);
+
+    const donutFluxo = document.getElementById("donut-fluxo").value;
+    const donutAno = parseInt(document.getElementById("donut-ano").value);
+    renderDonut("graph-donut", donutFluxo, donutAno);
+}
+
+function toggleSection(key, visible) {
+    const el = document.getElementById("section-" + key);
+    if (el) el.style.display = visible ? "" : "none";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".ncm-check").forEach(el => {
+        el.addEventListener("change", renderAll);
+    });
+    document.getElementById("ano-min").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
+    document.getElementById("ano-max").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
+    document.getElementById("comp-fluxo").addEventListener("change", renderAll);
+    document.getElementById("hm-fluxo").addEventListener("change", renderAll);
+    document.getElementById("donut-fluxo").addEventListener("change", renderAll);
+    document.getElementById("donut-ano").addEventListener("change", renderAll);
+    document.querySelectorAll(".viz-check").forEach(el => {
+        el.addEventListener("change", () => toggleSection(el.value, el.checked));
+    });
+
+    updateAnoLabel();
+    renderAll();
+});
+"""
+
+    js = (
+        js.replace("__DATA_JSON__", data_json)
+        .replace("__NCMS_JSON__", ncms_json)
+        .replace("__CORES_JSON__", cores_json)
+        .replace("__ANOS_JSON__", anos_json)
+        .replace("__BG__", BG)
+        .replace("__BG2__", BG2)
+        .replace("__BG3__", BG3)
+        .replace("__BORDA__", BORDA)
+        .replace("__TEXTO__", TEXTO)
+        .replace("__TEXTO2__", TEXTO2)
+    )
+
+    ano_min, ano_max = int(ANOS[0]), int(ANOS[-1])
+    ano_default = ano_max
+
+    ncm_checkboxes = "".join(
+        f'<label class="chk"><input type="checkbox" class="ncm-check" value="{ncm}" checked> {ncm}</label>'
+        for ncm in NCMS
+    )
+    viz_checkboxes = "".join(
+        f'<label class="chk"><input type="checkbox" class="viz-check" value="{key}" checked> {label}</label>'
+        for key, label in [
+            ("evolucao", "Evolução Total"),
+            ("saldo", "Saldo Comercial"),
+            ("composicao", "Composição (Exp/Imp)"),
+            ("heatmap", "Heatmap"),
+            ("donut", "Participação (Donut)"),
+        ]
+    )
+    ano_options = "".join(f'<option value="{int(a)}">{int(a)}</option>' for a in ANOS)
 
     page = f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Comércio Exterior — Armas de Fogo</title>
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
 body{{background:{BG};color:{TEXTO};font-family:'Inter','Segoe UI',Arial,sans-serif;line-height:1.5}}
-header{{background:{BG2};border-bottom:1px solid {BORDA};padding:24px 40px}}
-header h1{{font-size:1.5rem;font-weight:700}}
-header p{{color:{TEXTO2};font-size:.85rem;margin-top:6px}}
-main{{max-width:1240px;margin:0 auto;padding:28px 20px;display:flex;flex-direction:column;gap:24px}}
-.card{{background:{BG2};border:1px solid {BORDA};border-radius:12px;padding:22px 18px}}
-.card h2{{font-size:.75rem;font-weight:600;color:{TEXTO2};text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}}
+header{{background:{BG2};border-bottom:1px solid {BORDA};padding:22px 40px}}
+header h1{{font-size:1.4rem;font-weight:700}}
+header p{{color:{TEXTO2};font-size:.82rem;margin-top:5px;white-space:pre-line}}
+main{{max-width:1200px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}}
+.card{{background:{BG2};border:1px solid {BORDA};border-radius:12px;padding:20px 16px}}
+.card h2, .card h3{{font-size:.75rem;font-weight:600;color:{TEXTO2};text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}}
 footer{{text-align:center;padding:20px;color:{TEXTO2};font-size:.78rem;border-top:1px solid {BORDA};margin-top:8px}}
+
+.controls{{display:grid;grid-template-columns:1.4fr 1.2fr 1fr;gap:20px;align-items:start}}
+.control-group label.title{{display:block;color:{TEXTO2};font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}}
+.chk{{display:inline-flex;align-items:center;gap:5px;background:{BG3};border:1px solid {BORDA};
+      border-radius:6px;padding:5px 9px;margin:0 6px 6px 0;font-size:.78rem;cursor:pointer;color:{TEXTO}}}
+.chk input{{accent-color:#3B82F6;cursor:pointer}}
+
+select{{
+    background:{BG3};color:{TEXTO};border:1px solid {BORDA};border-radius:8px;
+    padding:7px 10px;font-size:.85rem;font-family:inherit;cursor:pointer;
+}}
+select:focus{{outline:1px solid #3B82F6}}
+
+.range-wrap{{position:relative;height:36px;margin-top:6px}}
+.range-track-rail{{position:absolute;top:16px;left:0;right:0;height:4px;
+    background:{BORDA};border-radius:2px;pointer-events:none;}}
+.range-track-fill{{position:absolute;top:16px;height:4px;background:#3B82F6;
+    border-radius:2px;pointer-events:none;}}
+.range-wrap input[type=range]{{
+    position:absolute;top:12px;left:0;width:100%;margin:0;
+    -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;
+}}
+.range-wrap input[type=range]::-webkit-slider-thumb{{
+    -webkit-appearance:none;appearance:none;pointer-events:auto;
+    width:16px;height:16px;border-radius:50%;background:{BG2};
+    border:3px solid #3B82F6;cursor:pointer;margin-top:-6px;position:relative;z-index:2;
+}}
+.range-wrap input[type=range]::-moz-range-thumb{{
+    pointer-events:auto;width:16px;height:16px;border-radius:50%;
+    background:{BG2};border:3px solid #3B82F6;cursor:pointer;z-index:2;
+}}
+.range-wrap input[type=range]::-webkit-slider-runnable-track{{
+    height:4px;background:transparent;border-radius:2px;
+}}
+.range-wrap input[type=range]::-moz-range-track{{
+    height:4px;background:transparent;border-radius:2px;
+}}
+#ano-range-label{{color:{TEXTO};font-size:.85rem;font-weight:600}}
+
+.inline-controls{{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;align-items:end}}
+.inline-controls .field label{{display:block;color:{TEXTO2};font-size:.72rem;
+    text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}}
 </style>
 </head>
 <body>
+
 <header>
-  <h1>🔫 Comércio Exterior de Armas de Fogo — Brasil (2020–2026)</h1>
-  <p>Fonte: Comex Stat / MDIC · USD FOB · NCMs: 93020000 · 93032000 · 93033000 · 93039090</p>
+  <h1>Comércio Exterior de Armas de Fogo — Brasil (2020–2026)</h1>
+  <p>{header_html}</p>
 </header>
-<main>{divs_html}</main>
+
+<main>
+
+  <div class="card">
+    <div class="controls">
+      <div class="control-group">
+        <label class="title">Visualizações ativas</label>
+        {viz_checkboxes}
+      </div>
+      <div class="control-group">
+        <label class="title">Categorias (NCM)</label>
+        {ncm_checkboxes}
+      </div>
+      <div class="control-group">
+        <label class="title">Intervalo de anos: <span id="ano-range-label"></span></label>
+        <div class="range-wrap">
+          <div class="range-track-rail"></div>
+          <div class="range-track-fill" id="ano-track-fill"></div>
+          <input type="range" id="ano-min" min="{ano_min}" max="{ano_max}" step="1" value="{ano_min}">
+          <input type="range" id="ano-max" min="{ano_min}" max="{ano_max}" step="1" value="{ano_max}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="section-evolucao">
+    <h2>📈 Evolução Total</h2>
+    <div id="graph-evolucao"></div>
+  </div>
+
+  <div class="card" id="section-saldo">
+    <h2>⚖️ Saldo Comercial</h2>
+    <div id="graph-saldo"></div>
+  </div>
+
+  <div class="card" id="section-composicao">
+    <h2>📦 Composição por Fluxo</h2>
+    <div class="inline-controls">
+      <div class="field">
+        <label>Fluxo</label>
+        <select id="comp-fluxo">
+          <option value="Exportação">Exportação</option>
+          <option value="Importação">Importação</option>
+        </select>
+      </div>
+    </div>
+    <div id="graph-composicao"></div>
+  </div>
+
+  <div class="card" id="section-heatmap">
+    <h2>🌡️ Heatmap de Intensidade</h2>
+    <div class="inline-controls">
+      <div class="field">
+        <label>Fluxo</label>
+        <select id="hm-fluxo">
+          <option value="Exportação">Exportação</option>
+          <option value="Importação">Importação</option>
+        </select>
+      </div>
+    </div>
+    <div id="graph-heatmap"></div>
+  </div>
+
+  <div class="card" id="section-donut">
+    <h2>🥧 Participação por Ano</h2>
+    <div class="inline-controls">
+      <div class="field">
+        <label>Fluxo</label>
+        <select id="donut-fluxo">
+          <option value="Exportação">Exportação</option>
+          <option value="Importação">Importação</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Ano</label>
+        <select id="donut-ano">{ano_options}</select>
+      </div>
+    </div>
+    <div id="graph-donut"></div>
+  </div>
+
+</main>
+
 <footer>Grupo de Pesquisa · dados_small_arms.xlsx</footer>
-</body></html>"""
+
+<script>
+{js}
+</script>
+<script>
+  document.getElementById("donut-ano").value = "{ano_default}";
+</script>
+</body>
+</html>"""
 
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(page)
-    print("✅ docs/index.html gerado")
+    print(
+        "✅ docs/index.html gerado — interativo, sem servidor, mesmos filtros do Dash"
+    )
 
 
 if __name__ == "__main__":
