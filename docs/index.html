@@ -10,64 +10,49 @@
 body{background:#0D1117;color:#E6EDF3;font-family:'Inter','Segoe UI',Arial,sans-serif;line-height:1.5}
 header{background:#161B22;border-bottom:1px solid #30363D;padding:22px 40px}
 header h1{font-size:1.4rem;font-weight:700}
-header p{color:#8B949E;font-size:.82rem;margin-top:5px;white-space:pre-line}
+header p{color:#8B949E;font-size:.82rem;margin-top:5px}
+header details{margin-top:8px}
+header summary{cursor:pointer;color:#8B949E;font-size:.76rem}
+header details pre{color:#8B949E;font-size:.72rem;margin-top:8px;white-space:pre-wrap;font-family:inherit}
 main{max-width:1200px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}
 .card{background:#161B22;border:1px solid #30363D;border-radius:12px;padding:20px 16px}
-.card h2, .card h3{font-size:.75rem;font-weight:600;color:#8B949E;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
+.card h2{font-size:.75rem;font-weight:600;color:#8B949E;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
 footer{text-align:center;padding:20px;color:#8B949E;font-size:.78rem;border-top:1px solid #30363D;margin-top:8px}
 
-/* ── painel de controle ── */
-.controls{display:grid;grid-template-columns:1.4fr 1.2fr 1fr;gap:20px;align-items:start}
+.controls{display:grid;grid-template-columns:1.3fr 2fr 1.2fr;gap:20px;align-items:start}
 .control-group label.title{display:block;color:#8B949E;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.chk{display:inline-flex;align-items:center;gap:5px;background:#1C2128;border:1px solid #30363D;
-      border-radius:6px;padding:5px 9px;margin:0 6px 6px 0;font-size:.78rem;cursor:pointer;color:#E6EDF3}
+.chk{display:flex;align-items:center;gap:6px;font-size:.78rem;cursor:pointer;color:#E6EDF3;margin-bottom:4px}
 .chk input{accent-color:#3B82F6;cursor:pointer}
 
-/* ── selects nativos, dark ── */
-select{
-    background:#1C2128;color:#E6EDF3;border:1px solid #30363D;border-radius:8px;
-    padding:7px 10px;font-size:.85rem;font-family:inherit;cursor:pointer;
-}
+.ncm-groups{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.ncm-group-title{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+
+select{background:#1C2128;color:#E6EDF3;border:1px solid #30363D;border-radius:8px;padding:7px 10px;font-size:.85rem;font-family:inherit;cursor:pointer}
 select:focus{outline:1px solid #3B82F6}
 
-/* ── dual range slider ── */
 .range-wrap{position:relative;height:36px;margin-top:6px}
-.range-track-rail{position:absolute;top:16px;left:0;right:0;height:4px;
-    background:#30363D;border-radius:2px;pointer-events:none;}
-.range-track-fill{position:absolute;top:16px;height:4px;background:#3B82F6;
-    border-radius:2px;pointer-events:none;}
-.range-wrap input[type=range]{
-    position:absolute;top:12px;left:0;width:100%;margin:0;
-    -webkit-appearance:none;appearance:none;background:transparent;pointer-events:none;
-}
-.range-wrap input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none;appearance:none;pointer-events:auto;
-    width:16px;height:16px;border-radius:50%;background:#161B22;
-    border:3px solid #3B82F6;cursor:pointer;margin-top:-6px;position:relative;z-index:2;
-}
-.range-wrap input[type=range]::-moz-range-thumb{
-    pointer-events:auto;width:16px;height:16px;border-radius:50%;
-    background:#161B22;border:3px solid #3B82F6;cursor:pointer;z-index:2;
-}
-.range-wrap input[type=range]::-webkit-slider-runnable-track{
-    height:4px;background:transparent;border-radius:2px;
-}
-.range-wrap input[type=range]::-moz-range-track{
-    height:4px;background:transparent;border-radius:2px;
-}
+.range-track-rail{position:absolute;top:16px;left:0;right:0;height:4px;background:#30363D;border-radius:2px;pointer-events:none}
+.range-track-fill{position:absolute;top:16px;height:4px;background:#3B82F6;border-radius:2px;pointer-events:none}
+.range-wrap input[type=range]{position:absolute;top:12px;left:0;width:100%;margin:0;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none}
+.range-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#161B22;border:3px solid #3B82F6;cursor:pointer;margin-top:-6px;position:relative;z-index:2}
+.range-wrap input[type=range]::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#161B22;border:3px solid #3B82F6;cursor:pointer;z-index:2}
+.range-wrap input[type=range]::-webkit-slider-runnable-track{height:4px;background:transparent;border-radius:2px}
+.range-wrap input[type=range]::-moz-range-track{height:4px;background:transparent;border-radius:2px}
 #ano-range-label{color:#E6EDF3;font-size:.85rem;font-weight:600}
 
-/* ── controles inline de cada gráfico ── */
 .inline-controls{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;align-items:end}
-.inline-controls .field label{display:block;color:#8B949E;font-size:.72rem;
-    text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.inline-controls .field label{display:block;color:#8B949E;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Comércio Exterior de Armas de Fogo — Brasil (2020–2026)</h1>
-  <p>Fonte: Comex Stat / MDIC · USD FOB · NCMs: <br>93020000 (Revólveres e pistolas, exceto os das posições 93.03 ou 93.04.)<br>93032000 (Outras espingardas e carabinas de caça ou de tiro ao alvo, com pelo menos um cano liso)<br>93033000 (Outras espingardas e carabinas de caça ou de tiro ao alvo)<br>93039090 (Outras armas de fogo que utilizam deflagração da pólvora, etc.)</p>
+  <h1>Comércio Exterior de Armas de Fogo — Brasil (2011–2026)</h1>
+  <p>Fonte: Comex Stat / MDIC · USD FOB · 12 NCMs · 2011–2026</p>
+  <details>
+    <summary>Ver descrição completa dos 12 NCMs</summary>
+    <pre>93019000 — Outras Armas de Guerra: Outras armas de guerra, exceto revólveres, pistolas e armas brancas.<br>93020000 — Revólveres e Pistolas: Revólveres e pistolas, exceto os das posições 93.03 ou 93.04<br>93031000 — Armas de Carregar p/ Boca: Armas de fogo carregáveis exclusivamente pela boca<br>93032000 — Espingarda/Carabina (cano liso): Outras espingardas e carabinas de caça ou de tiro ao alvo, com pelo menos um cano liso<br>93033000 — Espingarda/Carabina (outras): Outras espingardas e carabinas de caça ou de tiro ao alvo<br>93062100 — Cartucho (cano liso): Cartuchos para espingardas ou carabinas de cano liso<br>93062190 — Outros Cartuchos: Outros cartuchos<br>93063000 — Outros Cartuchos e Partes: Outros cartuchos e suas partes<br>93051000 — Partes Revólver/Pistola: Partes e acessórios de revólveres ou pistolas<br>93052000 — Partes Espingarda/Carabina: Partes e acessórios de espingardas ou carabinas da posição 93.03<br>93059100 — Partes Armas de Guerra: Partes e acessórios de armas de guerra da posição 93.01<br>93059900 — Partes Outras Armas: Partes e acessórios de outras armas</pre>
+  </details>
 </header>
 
 <main>
@@ -79,16 +64,16 @@ select:focus{outline:1px solid #3B82F6}
         <label class="chk"><input type="checkbox" class="viz-check" value="evolucao" checked> Evolução Total</label><label class="chk"><input type="checkbox" class="viz-check" value="saldo" checked> Saldo Comercial</label><label class="chk"><input type="checkbox" class="viz-check" value="composicao" checked> Composição (Exp/Imp)</label><label class="chk"><input type="checkbox" class="viz-check" value="heatmap" checked> Heatmap</label><label class="chk"><input type="checkbox" class="viz-check" value="donut" checked> Participação (Donut)</label>
       </div>
       <div class="control-group">
-        <label class="title">Categorias (NCM)</label>
-        <label class="chk"><input type="checkbox" class="ncm-check" value="Espingardas/Carabinas (estriado)" checked> Espingardas/Carabinas (estriado)</label><label class="chk"><input type="checkbox" class="ncm-check" value="Espingardas/Carabinas (liso)" checked> Espingardas/Carabinas (liso)</label><label class="chk"><input type="checkbox" class="ncm-check" value="Revólveres e Pistolas" checked> Revólveres e Pistolas</label><label class="chk"><input type="checkbox" class="ncm-check" value="Outras Armas (pólvora)" checked> Outras Armas (pólvora)</label>
+        <label class="title">Categorias / NCM</label>
+        <div class="ncm-groups"><div class="ncm-group"><div class="ncm-group-title" style="color:#22C55E">Armas de Fogo</div><label class="chk"><input type="checkbox" class="ncm-check" value="Outras Armas de Guerra" checked> Outras Armas de Guerra</label><label class="chk"><input type="checkbox" class="ncm-check" value="Revólveres e Pistolas" checked> Revólveres e Pistolas</label><label class="chk"><input type="checkbox" class="ncm-check" value="Armas de Carregar p/ Boca" checked> Armas de Carregar p/ Boca</label><label class="chk"><input type="checkbox" class="ncm-check" value="Espingarda/Carabina (cano liso)" checked> Espingarda/Carabina (cano liso)</label><label class="chk"><input type="checkbox" class="ncm-check" value="Espingarda/Carabina (outras)" checked> Espingarda/Carabina (outras)</label></div><div class="ncm-group"><div class="ncm-group-title" style="color:#3B82F6">Munição e Cartuchos</div><label class="chk"><input type="checkbox" class="ncm-check" value="Cartucho (cano liso)" checked> Cartucho (cano liso)</label><label class="chk"><input type="checkbox" class="ncm-check" value="Outros Cartuchos" checked> Outros Cartuchos</label><label class="chk"><input type="checkbox" class="ncm-check" value="Outros Cartuchos e Partes" checked> Outros Cartuchos e Partes</label></div><div class="ncm-group"><div class="ncm-group-title" style="color:#F97316">Partes e Acessórios</div><label class="chk"><input type="checkbox" class="ncm-check" value="Partes Revólver/Pistola" checked> Partes Revólver/Pistola</label><label class="chk"><input type="checkbox" class="ncm-check" value="Partes Espingarda/Carabina" checked> Partes Espingarda/Carabina</label><label class="chk"><input type="checkbox" class="ncm-check" value="Partes Armas de Guerra" checked> Partes Armas de Guerra</label><label class="chk"><input type="checkbox" class="ncm-check" value="Partes Outras Armas" checked> Partes Outras Armas</label></div></div>
       </div>
       <div class="control-group">
         <label class="title">Intervalo de anos: <span id="ano-range-label"></span></label>
         <div class="range-wrap">
           <div class="range-track-rail"></div>
           <div class="range-track-fill" id="ano-track-fill"></div>
-          <input type="range" id="ano-min" min="2020" max="2026" step="1" value="2020">
-          <input type="range" id="ano-max" min="2020" max="2026" step="1" value="2026">
+          <input type="range" id="ano-min" min="2011" max="2026" step="1" value="2011">
+          <input type="range" id="ano-max" min="2011" max="2026" step="1" value="2026">
         </div>
       </div>
     </div>
@@ -101,18 +86,31 @@ select:focus{outline:1px solid #3B82F6}
 
   <div class="card" id="section-saldo">
     <h2>⚖️ Saldo Comercial</h2>
+    <div class="inline-controls">
+      <div class="field"><label>Nível</label>
+        <select id="saldo-nivel">
+        <option value="Categoria">Categoria (agrupado)</option>
+        <option value="NCM">NCM (detalhado)</option>
+    </select>
+      </div>
+    </div>
     <div id="graph-saldo"></div>
   </div>
 
   <div class="card" id="section-composicao">
     <h2>📦 Composição por Fluxo</h2>
     <div class="inline-controls">
-      <div class="field">
-        <label>Fluxo</label>
+      <div class="field"><label>Fluxo</label>
         <select id="comp-fluxo">
           <option value="Exportação">Exportação</option>
           <option value="Importação">Importação</option>
         </select>
+      </div>
+      <div class="field"><label>Nível</label>
+        <select id="comp-nivel">
+        <option value="Categoria">Categoria (agrupado)</option>
+        <option value="NCM">NCM (detalhado)</option>
+    </select>
       </div>
     </div>
     <div id="graph-composicao"></div>
@@ -121,11 +119,16 @@ select:focus{outline:1px solid #3B82F6}
   <div class="card" id="section-heatmap">
     <h2>🌡️ Heatmap de Intensidade</h2>
     <div class="inline-controls">
-      <div class="field">
-        <label>Fluxo</label>
+      <div class="field"><label>Fluxo</label>
         <select id="hm-fluxo">
           <option value="Exportação">Exportação</option>
           <option value="Importação">Importação</option>
+        </select>
+      </div>
+      <div class="field"><label>Nível</label>
+        <select id="hm-nivel">
+          <option value="NCM">NCM (detalhado)</option>
+          <option value="Categoria">Categoria (agrupado)</option>
         </select>
       </div>
     </div>
@@ -135,16 +138,20 @@ select:focus{outline:1px solid #3B82F6}
   <div class="card" id="section-donut">
     <h2>🥧 Participação por Ano</h2>
     <div class="inline-controls">
-      <div class="field">
-        <label>Fluxo</label>
+      <div class="field"><label>Fluxo</label>
         <select id="donut-fluxo">
           <option value="Exportação">Exportação</option>
           <option value="Importação">Importação</option>
         </select>
       </div>
-      <div class="field">
-        <label>Ano</label>
-        <select id="donut-ano"><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select>
+      <div class="field"><label>Nível</label>
+        <select id="donut-nivel">
+        <option value="Categoria">Categoria (agrupado)</option>
+        <option value="NCM">NCM (detalhado)</option>
+    </select>
+      </div>
+      <div class="field"><label>Ano</label>
+        <select id="donut-ano"><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option></select>
       </div>
     </div>
     <div id="graph-donut"></div>
@@ -156,10 +163,13 @@ select:focus{outline:1px solid #3B82F6}
 
 <script>
 
-const DATA = [{"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2026, "Valor": 42894095.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2026, "Valor": 2831058.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2025, "Valor": 115737335.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2025, "Valor": 410718.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2024, "Valor": 160895072.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2024, "Valor": 407144.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2023, "Valor": 187152683.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2023, "Valor": 1231954.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2022, "Valor": 174223631.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2022, "Valor": 3999011.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2021, "Valor": 198979117.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2021, "Valor": 2361651.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Exportação", "Ano": 2020, "Valor": 149811175.0}, {"NCM": 93033000, "Label": "Espingardas/Carabinas (estriado)", "Fluxo": "Importação", "Ano": 2020, "Valor": 3471889.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2026, "Valor": 4513137.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2026, "Valor": 72288.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2025, "Valor": 13261047.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2025, "Valor": 312664.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2024, "Valor": 33620387.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2024, "Valor": 3154580.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2023, "Valor": 51966225.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2023, "Valor": 7735870.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2022, "Valor": 32397022.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2022, "Valor": 4994470.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2021, "Valor": 25471692.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2021, "Valor": 2366082.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Exportação", "Ano": 2020, "Valor": 16252246.0}, {"NCM": 93032000, "Label": "Espingardas/Carabinas (liso)", "Fluxo": "Importação", "Ano": 2020, "Valor": 2318909.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2026, "Valor": 13317989.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2025, "Valor": 24604182.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2024, "Valor": 8071364.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2023, "Valor": 40744114.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2022, "Valor": 86549816.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2021, "Valor": 39036976.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Fluxo": "Importação", "Ano": 2020, "Valor": 29350649.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2026, "Valor": 45379.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2025, "Valor": 108272.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2024, "Valor": 37026.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2023, "Valor": 558264.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2022, "Valor": 69876.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2021, "Valor": 17470.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93039090, "Label": "Outras Armas (pólvora)", "Fluxo": "Importação", "Ano": 2020, "Valor": 264894.0}];
-const NCMS = ["Espingardas/Carabinas (estriado)", "Espingardas/Carabinas (liso)", "Revólveres e Pistolas", "Outras Armas (pólvora)"];
-const CORES_CAT = {"Espingardas/Carabinas (estriado)": "#22C55E", "Espingardas/Carabinas (liso)": "#3B82F6", "Revólveres e Pistolas": "#EF4444", "Outras Armas (pólvora)": "#F97316"};
-const ANOS = [2020, 2021, 2022, 2023, 2024, 2025, 2026];
+const DATA = [{"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2026, "Valor": 133033925.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2025, "Valor": 308913172.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2024, "Valor": 320787148.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2023, "Valor": 314255211.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2022, "Valor": 202763634.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2021, "Valor": 120231016.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2020, "Valor": 141524262.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2019, "Valor": 204028700.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2019, "Valor": 140843.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2018, "Valor": 195935715.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2018, "Valor": 151924.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2017, "Valor": 320734357.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2017, "Valor": 230613.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2016, "Valor": 218262410.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2016, "Valor": 62721.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2015, "Valor": 241993133.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2014, "Valor": 182481927.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2014, "Valor": 187386.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2013, "Valor": 174238411.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2013, "Valor": 260819.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2012, "Valor": 136215927.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2012, "Valor": 244708.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2011, "Valor": 136018757.0}, {"NCM": 93062100, "Label": "Cartucho (cano liso)", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2011, "Valor": 338694.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2026, "Valor": 42894095.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2026, "Valor": 2831058.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2025, "Valor": 115737335.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2025, "Valor": 410718.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2024, "Valor": 160895072.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2024, "Valor": 407144.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2023, "Valor": 187152683.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2023, "Valor": 1231954.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2022, "Valor": 174223631.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2022, "Valor": 3999011.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2021, "Valor": 198979117.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2021, "Valor": 2361651.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2020, "Valor": 149811175.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2020, "Valor": 3471889.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2019, "Valor": 151964410.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2019, "Valor": 462069.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2018, "Valor": 139031539.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2018, "Valor": 199075.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2017, "Valor": 147946513.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2017, "Valor": 112554.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2016, "Valor": 114309983.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2016, "Valor": 494842.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2015, "Valor": 105422842.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2015, "Valor": 472044.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2014, "Valor": 114021728.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2014, "Valor": 3327459.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2013, "Valor": 152053075.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2013, "Valor": 215994.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2012, "Valor": 152012961.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2012, "Valor": 43476.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2011, "Valor": 130256347.0}, {"NCM": 93033000, "Label": "Espingarda/Carabina (outras)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2011, "Valor": 10565.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2026, "Valor": 4513137.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2026, "Valor": 72288.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2025, "Valor": 13261047.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2025, "Valor": 312664.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2024, "Valor": 33620387.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2024, "Valor": 3154580.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2023, "Valor": 51966225.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2023, "Valor": 7735870.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2022, "Valor": 32397022.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2022, "Valor": 4994470.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2021, "Valor": 25471692.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2021, "Valor": 2366082.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2020, "Valor": 16252246.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2020, "Valor": 2318909.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2019, "Valor": 5527964.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2019, "Valor": 1191769.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2018, "Valor": 5396620.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2018, "Valor": 1657401.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2017, "Valor": 6033831.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2017, "Valor": 87277.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2016, "Valor": 6983041.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2016, "Valor": 1276415.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2015, "Valor": 10368234.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2015, "Valor": 2094801.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2014, "Valor": 12235956.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2014, "Valor": 2060943.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2013, "Valor": 21083284.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2013, "Valor": 227952.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2012, "Valor": 19275396.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2012, "Valor": 12451.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2011, "Valor": 17423057.0}, {"NCM": 93032000, "Label": "Espingarda/Carabina (cano liso)", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2011, "Valor": 49302.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2026, "Valor": 213757.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2026, "Valor": 307398.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2025, "Valor": 472128.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2025, "Valor": 920203.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2024, "Valor": 442605.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2024, "Valor": 1711673.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2023, "Valor": 999122.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2023, "Valor": 1079484.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2022, "Valor": 1868684.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2022, "Valor": 1440526.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2021, "Valor": 1957994.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2021, "Valor": 1630759.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2020, "Valor": 750934.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2020, "Valor": 1221200.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2019, "Valor": 467182.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2019, "Valor": 1172292.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2018, "Valor": 253825.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2018, "Valor": 495720.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2017, "Valor": 131645.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2017, "Valor": 586714.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2016, "Valor": 252136.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2016, "Valor": 977849.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2015, "Valor": 526239.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2015, "Valor": 406508.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2014, "Valor": 399797.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2014, "Valor": 472939.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2013, "Valor": 1072107.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2013, "Valor": 838189.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2012, "Valor": 874081.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2012, "Valor": 956996.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93052000, "Label": "Partes Espingarda/Carabina", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2026, "Valor": 905.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2026, "Valor": 765852.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2025, "Valor": 8740.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2025, "Valor": 22032345.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2024, "Valor": 1290.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2024, "Valor": 490102.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2023, "Valor": 3926.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2023, "Valor": 671416.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2022, "Valor": 642791.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2021, "Valor": 1361243.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2020, "Valor": 822.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2020, "Valor": 560015.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2019, "Valor": 92.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2019, "Valor": 3181575.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2018, "Valor": 762.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2018, "Valor": 463356.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2017, "Valor": 685.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2017, "Valor": 489145.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2016, "Valor": 7513.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2016, "Valor": 762065.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2015, "Valor": 139983.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2015, "Valor": 1167184.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2014, "Valor": 53293.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2014, "Valor": 1971120.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2013, "Valor": 44228.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2013, "Valor": 443502.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2012, "Valor": 156297.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2012, "Valor": 1109181.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93059900, "Label": "Partes Outras Armas", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2011, "Valor": 352054.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2026, "Valor": 22171866.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2025, "Valor": 20942289.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2024, "Valor": 14530891.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2023, "Valor": 10562988.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2022, "Valor": 17155205.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2021, "Valor": 16423189.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2020, "Valor": 8251823.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2019, "Valor": 3909699.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2018, "Valor": 3702311.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2017, "Valor": 1754171.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2016, "Valor": 3048123.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2015, "Valor": 6286188.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2014, "Valor": 11949483.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2013, "Valor": 5622106.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2012, "Valor": 5244392.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93063000, "Label": "Outros Cartuchos e Partes", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2011, "Valor": 7195722.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2026, "Valor": 13317989.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2025, "Valor": 24604182.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2024, "Valor": 8071364.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2023, "Valor": 40744114.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2022, "Valor": 86549816.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2021, "Valor": 39036976.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2020, "Valor": 29350649.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2019, "Valor": 21239847.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2018, "Valor": 11893439.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2017, "Valor": 2231780.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2016, "Valor": 859623.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2015, "Valor": 2148275.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2014, "Valor": 3471947.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2013, "Valor": 1146299.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2012, "Valor": 1135819.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93020000, "Label": "Revólveres e Pistolas", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2011, "Valor": 1638372.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2026, "Valor": 10118396.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2025, "Valor": 24964267.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2024, "Valor": 11906729.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2023, "Valor": 26254546.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2022, "Valor": 14435533.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2021, "Valor": 8161372.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2020, "Valor": 3802781.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2019, "Valor": 981523.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2018, "Valor": 2625524.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2017, "Valor": 2956457.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2016, "Valor": 1330208.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2015, "Valor": 1943698.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2014, "Valor": 8204722.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2013, "Valor": 1187706.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2012, "Valor": 1484832.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93019000, "Label": "Outras Armas de Guerra", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2011, "Valor": 2191327.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2026, "Valor": 1463979.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2025, "Valor": 3175071.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2024, "Valor": 2705091.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2023, "Valor": 9485220.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2022, "Valor": 15276691.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2021, "Valor": 3558516.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2020, "Valor": 2422864.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2019, "Valor": 1591842.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2018, "Valor": 8687879.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2017, "Valor": 1601765.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2016, "Valor": 8676746.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2015, "Valor": 527030.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2014, "Valor": 3170510.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2013, "Valor": 2982306.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2012, "Valor": 3318386.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93059100, "Label": "Partes Armas de Guerra", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2011, "Valor": 4758362.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2026, "Valor": 968366.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2025, "Valor": 2726425.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2024, "Valor": 2781580.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2023, "Valor": 2252616.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2022, "Valor": 6661500.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2021, "Valor": 3892944.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2020, "Valor": 3339387.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2019, "Valor": 3050574.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2018, "Valor": 1577471.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2017, "Valor": 723805.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2016, "Valor": 283861.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2015, "Valor": 407627.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2014, "Valor": 277885.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2013, "Valor": 178053.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2012, "Valor": 156981.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93051000, "Label": "Partes Revólver/Pistola", "Categoria": "Partes e Acessórios", "Fluxo": "Importação", "Ano": 2011, "Valor": 54160.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2025, "Valor": 177241.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2024, "Valor": 9849.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2023, "Valor": 14507.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2022, "Valor": 7175.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2021, "Valor": 1233794.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2020, "Valor": 351150.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93062190, "Label": "Outros Cartuchos", "Categoria": "Munição e Cartuchos", "Fluxo": "Importação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2026, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2025, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2024, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2023, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2022, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2021, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2020, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2019, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2018, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2018, "Valor": 3794.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2017, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2016, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2015, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2014, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2013, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2012, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Exportação", "Ano": 2011, "Valor": 0.0}, {"NCM": 93031000, "Label": "Armas de Carregar p/ Boca", "Categoria": "Armas de Fogo", "Fluxo": "Importação", "Ano": 2011, "Valor": 0.0}];
+const NCMS = ["Outras Armas de Guerra", "Revólveres e Pistolas", "Armas de Carregar p/ Boca", "Espingarda/Carabina (cano liso)", "Espingarda/Carabina (outras)", "Cartucho (cano liso)", "Outros Cartuchos", "Outros Cartuchos e Partes", "Partes Revólver/Pistola", "Partes Espingarda/Carabina", "Partes Armas de Guerra", "Partes Outras Armas"];
+const CATEGORIAS_LIST = ["Armas de Fogo", "Munição e Cartuchos", "Partes e Acessórios"];
+const CORES_NCM = {"Outras Armas de Guerra": "#157A3A", "Revólveres e Pistolas": "#1CA54E", "Armas de Carregar p/ Boca": "#24CF63", "Espingarda/Carabina (cano liso)": "#46DF7E", "Espingarda/Carabina (outras)": "#71E69C", "Cartucho (cano liso)": "#084BB8", "Outros Cartuchos": "#2D79F5", "Outros Cartuchos e Partes": "#8AB4FA", "Partes Revólver/Pistola": "#9B4204", "Partes Espingarda/Carabina": "#E46106", "Partes Armas de Guerra": "#FA893A", "Partes Outras Armas": "#FCB583"};
+const CORES_CAT_BASE = {"Armas de Fogo": "#22C55E", "Munição e Cartuchos": "#3B82F6", "Partes e Acessórios": "#F97316"};
+const LABEL_TO_CAT = {"Outras Armas de Guerra": "Armas de Fogo", "Revólveres e Pistolas": "Armas de Fogo", "Armas de Carregar p/ Boca": "Armas de Fogo", "Espingarda/Carabina (cano liso)": "Armas de Fogo", "Espingarda/Carabina (outras)": "Armas de Fogo", "Cartucho (cano liso)": "Munição e Cartuchos", "Outros Cartuchos": "Munição e Cartuchos", "Outros Cartuchos e Partes": "Munição e Cartuchos", "Partes Revólver/Pistola": "Partes e Acessórios", "Partes Espingarda/Carabina": "Partes e Acessórios", "Partes Armas de Guerra": "Partes e Acessórios", "Partes Outras Armas": "Partes e Acessórios"};
+const ANOS = [2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026];
 
 const BG = "#0D1117", BG2 = "#161B22", BG3 = "#1C2128",
       BORDA = "#30363D", TEXTO = "#E6EDF3", TEXTO2 = "#8B949E";
@@ -170,17 +180,22 @@ function fmtUsd(v) {
     return "US$ " + v.toLocaleString("en-US", {maximumFractionDigits: 0});
 }
 
+function getDimInfo(nivel) {
+    if (nivel === "Categoria") return { col: "Categoria", order: CATEGORIAS_LIST, colors: CORES_CAT_BASE };
+    return { col: "Label", order: NCMS, colors: CORES_NCM };
+}
+
 function layoutBase() {
     return {
         paper_bgcolor: BG, plot_bgcolor: BG2,
         font: { family: "Inter, Segoe UI, Arial", color: TEXTO, size: 13 },
-        margin: { t: 70, b: 50, l: 105, r: 30 },
+        margin: { t: 70, b: 60, l: 105, r: 30 },
         xaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
                  tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
         yaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
                  tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
         legend: { bgcolor: "rgba(0,0,0,0)", bordercolor: BORDA, borderwidth: 1,
-                  font: { color: TEXTO }, orientation: "h",
+                  font: { color: TEXTO, size: 11 }, orientation: "h",
                   yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
         hoverlabel: { bgcolor: BG3, bordercolor: BORDA, font: { color: TEXTO } },
     };
@@ -192,25 +207,20 @@ function plotVazio(divId, msg) {
     layout.yaxis.visible = false;
     layout.height = 200;
     layout.annotations = [{
-        text: "⚠  " + msg, x: 0.5, y: 0.5, xref: "paper", yref: "paper",
+        text: "\u26a0  " + msg, x: 0.5, y: 0.5, xref: "paper", yref: "paper",
         showarrow: false, font: { size: 15, color: TEXTO2 },
     }];
     Plotly.newPlot(divId, [], layout, { displayModeBar: true, responsive: true });
 }
 
-function sumBy(arr, keyFn) {
+function sumByAno(arr) {
     const map = new Map();
-    for (const item of arr) {
-        const k = keyFn(item);
-        map.set(k, (map.get(k) || 0) + item.Valor);
-    }
+    for (const item of arr) map.set(item.Ano, (map.get(item.Ano) || 0) + item.Valor);
     return map;
 }
 
 function filterBase(ncmSel, anoMin, anoMax) {
-    return DATA.filter(d =>
-        ncmSel.includes(d.Label) && d.Ano >= anoMin && d.Ano <= anoMax
-    );
+    return DATA.filter(d => ncmSel.includes(d.Label) && d.Ano >= anoMin && d.Ano <= anoMax);
 }
 
 // ── Evolução Total ────────────────────────────────────────────────────────
@@ -218,142 +228,155 @@ function renderEvolucao(divId, ncmSel, anoMin, anoMax) {
     const d = filterBase(ncmSel, anoMin, anoMax);
     const total = d.reduce((s, x) => s + x.Valor, 0);
     if (d.length === 0 || total === 0) {
-        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no período");
+        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
         return;
     }
     const traces = [];
     const specs = [
-        ["Exportação", "#3B82F6", "rgba(59,130,246,0.12)"],
-        ["Importação", "#EF4444", "rgba(239,68,68,0.12)"],
+        ["Exporta\u00e7\u00e3o", "#3B82F6", "rgba(59,130,246,0.12)"],
+        ["Importa\u00e7\u00e3o", "#EF4444", "rgba(239,68,68,0.12)"],
     ];
     for (const [fluxo, cor, rgba] of specs) {
         const sub = d.filter(x => x.Fluxo === fluxo);
         if (sub.length === 0) continue;
-        const byAno = sumBy(sub, x => x.Ano);
+        const byAno = sumByAno(sub);
         const anos = [...byAno.keys()].sort((a, b) => a - b);
         const valores = anos.map(a => byAno.get(a));
         traces.push({
             x: anos, y: valores, name: fluxo, mode: "lines+markers",
             line: { color: cor, width: 3 },
-            marker: { size: 9, color: cor, line: { color: BG, width: 2 } },
+            marker: { size: 8, color: cor, line: { color: BG, width: 2 } },
             fill: "tozeroy", fillcolor: rgba,
             customdata: valores.map(fmtUsd),
             hovertemplate: "<b>%{x}</b><br>" + fluxo + ": %{customdata}<extra></extra>",
         });
     }
     const layout = layoutBase();
-    layout.title = { text: "Evolução Total — Exportação vs Importação (USD FOB)", font: { size: 15 } };
-    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickmode: "linear", tickangle: 0 };
+    layout.title = { text: "Evolu\u00e7\u00e3o Total \u2014 Exporta\u00e7\u00e3o vs Importa\u00e7\u00e3o (USD FOB)", font: { size: 15 } };
+    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
     layout.yaxis.title = "USD FOB";
     layout.yaxis.tickformat = "$,.0f";
-    layout.height = 460;
+    layout.height = 440;
     Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
 }
 
 // ── Saldo Comercial ───────────────────────────────────────────────────────
-function renderSaldo(divId, ncmSel, anoMin, anoMax) {
+function renderSaldo(divId, ncmSel, anoMin, anoMax, nivel) {
     const d = filterBase(ncmSel, anoMin, anoMax);
     if (d.length === 0) {
-        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no período");
+        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
         return;
     }
+    const { col, order, colors } = getDimInfo(nivel);
     const traces = [];
-    for (const ncm of NCMS) {
-        if (!ncmSel.includes(ncm)) continue;
-        const sub = d.filter(x => x.Label === ncm);
+    for (const item of order) {
+        const sub = d.filter(x => x[col] === item);
         if (sub.length === 0) continue;
         const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
         const saldos = anosSet.map(ano => {
-            const exp = sub.filter(x => x.Ano === ano && x.Fluxo === "Exportação")
-                            .reduce((s, x) => s + x.Valor, 0);
-            const imp = sub.filter(x => x.Ano === ano && x.Fluxo === "Importação")
-                            .reduce((s, x) => s + x.Valor, 0);
+            const exp = sub.filter(x => x.Ano === ano && x.Fluxo === "Exporta\u00e7\u00e3o").reduce((s, x) => s + x.Valor, 0);
+            const imp = sub.filter(x => x.Ano === ano && x.Fluxo === "Importa\u00e7\u00e3o").reduce((s, x) => s + x.Valor, 0);
             return exp - imp;
         });
-        const cor = CORES_CAT[ncm];
+        if (saldos.every(v => v === 0)) continue;
         traces.push({
-            x: anosSet, y: saldos, name: ncm, type: "bar",
-            marker: { color: cor, opacity: 0.9 },
+            x: anosSet, y: saldos, name: item, type: "bar",
+            marker: { color: colors[item], opacity: 0.9 },
             customdata: saldos.map(fmtUsd),
-            hovertemplate: "<b>" + ncm + "</b><br>Ano: %{x}<br>Saldo: %{customdata}<extra></extra>",
+            hovertemplate: "<b>" + item + "</b><br>Ano: %{x}<br>Saldo: %{customdata}<extra></extra>",
         });
     }
+    if (traces.length === 0) {
+        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+        return;
+    }
     const layout = layoutBase();
-    layout.title = { text: "Saldo Comercial por Categoria (Exportação − Importação)", font: { size: 15 } };
+    layout.title = {
+        text: nivel === "Categoria"
+            ? "Saldo Comercial por Categoria (Exporta\u00e7\u00e3o \u2212 Importa\u00e7\u00e3o)"
+            : "Saldo Comercial por NCM (Exporta\u00e7\u00e3o \u2212 Importa\u00e7\u00e3o)",
+        font: { size: 15 },
+    };
     layout.barmode = "group";
-    layout.xaxis.title = "Ano";
+    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
     layout.yaxis.title = "Saldo (USD FOB)";
     layout.yaxis.tickformat = "$,.0f";
-    layout.height = 460;
+    layout.height = 440;
     layout.shapes = [{ type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
                        line: { color: TEXTO2, width: 1, dash: "dot" } }];
     Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
 }
 
 // ── Composição ────────────────────────────────────────────────────────────
-function renderComposicao(divId, fluxo, ncmSel, anoMin, anoMax) {
+function renderComposicao(divId, fluxo, ncmSel, anoMin, anoMax, nivel) {
     const d = filterBase(ncmSel, anoMin, anoMax).filter(x => x.Fluxo === fluxo);
     const total = d.reduce((s, x) => s + x.Valor, 0);
     if (d.length === 0 || total === 0) {
         plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros selecionados");
         return;
     }
+    const { col, order, colors } = getDimInfo(nivel);
     const traces = [];
-    for (const ncm of NCMS) {
-        if (!ncmSel.includes(ncm)) continue;
-        const sub = d.filter(x => x.Label === ncm);
+    for (const item of order) {
+        const sub = d.filter(x => x[col] === item);
         if (sub.length === 0) continue;
         const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
         const valores = anosSet.map(ano => {
             const v = sub.filter(x => x.Ano === ano).reduce((s, x) => s + x.Valor, 0);
             return v > 0 ? v : null;
         });
+        if (valores.every(v => v === null)) continue;
         const custom = valores.map(v => v ? fmtUsd(v) : "Sem dados");
         traces.push({
-            x: anosSet, y: valores, name: ncm, type: "bar",
-            marker: { color: CORES_CAT[ncm] },
+            x: anosSet, y: valores, name: item, type: "bar",
+            marker: { color: colors[item] },
             customdata: custom,
-            hovertemplate: "<b>" + ncm + "</b><br>%{x}: %{customdata}<extra></extra>",
+            hovertemplate: "<b>" + item + "</b><br>%{x}: %{customdata}<extra></extra>",
         });
     }
+    if (traces.length === 0) {
+        plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros selecionados");
+        return;
+    }
     const layout = layoutBase();
-    layout.title = { text: "Composição das " + fluxo + "s por Categoria", font: { size: 15 } };
+    const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+    layout.title = { text: "Composi\u00e7\u00e3o das " + fluxo + "s por " + nivelTxt, font: { size: 15 } };
     layout.barmode = "stack";
-    layout.xaxis.title = "Ano";
+    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
     layout.yaxis.title = fluxo + " (USD FOB)";
     layout.yaxis.tickformat = "$,.0f";
-    layout.height = 460;
+    layout.height = 440;
     Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
 }
 
 // ── Heatmap ───────────────────────────────────────────────────────────────
-function renderHeatmap(divId, fluxo) {
-    const d = DATA.filter(x => x.Fluxo === fluxo);
+function renderHeatmap(divId, fluxo, ncmSel, nivel) {
+    let d = DATA.filter(x => x.Fluxo === fluxo);
+    if (ncmSel) d = d.filter(x => ncmSel.includes(x.Label));
     const total = d.reduce((s, x) => s + x.Valor, 0);
     if (total === 0) {
         plotVazio(divId, "Nenhum dado de " + fluxo + " para exibir no heatmap");
         return;
     }
-    const anosSet = [...new Set(d.map(x => x.Ano))].sort((a, b) => a - b);
+    const { col, order, colors } = getDimInfo(nivel);
     const z = [], text = [];
-    for (const ncm of NCMS) {
+    for (const item of order) {
         const rowZ = [], rowT = [];
-        for (const ano of anosSet) {
-            const v = d.filter(x => x.Label === ncm && x.Ano === ano)
-                       .reduce((s, x) => s + x.Valor, 0);
+        for (const ano of ANOS) {
+            const v = d.filter(x => x[col] === item && x.Ano === ano).reduce((s, x) => s + x.Valor, 0);
             rowZ.push(v > 0 ? v : null);
-            rowT.push(v > 0 ? fmtUsd(v) : "—");
+            rowT.push(v > 0 ? fmtUsd(v) : "\u2014");
         }
         z.push(rowZ); text.push(rowT);
     }
     const trace = {
-        z: z, x: anosSet.map(String), y: NCMS, type: "heatmap",
+        z: z, x: ANOS.map(String), y: order, type: "heatmap",
         colorscale: [
             [0.0, "#1C2128"], [0.15, "#1D4ED8"], [0.4, "#0EA5E9"],
             [0.65, "#22C55E"], [0.85, "#F59E0B"], [1.0, "#EF4444"],
         ],
         text: text, texttemplate: "%{text}",
-        textfont: { size: 11, color: TEXTO },
+        textfont: { size: 9, color: TEXTO },
         hoverongaps: false,
         hovertemplate: "<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
         colorbar: { title: { text: "USD FOB", font: { color: TEXTO2 } },
@@ -362,42 +385,56 @@ function renderHeatmap(divId, fluxo) {
         zmin: 0,
     };
     const layout = layoutBase();
-    layout.title = { text: "Heatmap — Intensidade de " + fluxo + "s por Categoria e Ano", font: { size: 15 } };
-    layout.xaxis = { title: "Ano", gridcolor: BORDA, tickfont: { color: TEXTO2 } };
+    const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+    layout.title = { text: "Heatmap \u2014 Intensidade de " + fluxo + "s por " + nivelTxt + " e Ano", font: { size: 15 } };
+    layout.xaxis = { title: "Ano", gridcolor: BORDA, tickfont: { color: TEXTO2 }, dtick: 1, tickangle: -45 };
     layout.yaxis = { gridcolor: BORDA, tickfont: { color: TEXTO, size: 10 } };
-    layout.margin = { t: 70, b: 50, l: 190, r: 30 };
-    layout.height = 340;
+    layout.margin = { t: 70, b: 60, l: nivel === "NCM" ? 230 : 150, r: 30 };
+    layout.height = 110 + 32 * order.length;
     Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
 }
 
 // ── Donut ─────────────────────────────────────────────────────────────────
-function renderDonut(divId, fluxo, ano) {
-    const d = DATA.filter(x => x.Ano === ano && x.Fluxo === fluxo && x.Valor > 0);
+function renderDonut(divId, fluxo, ano, ncmSel, nivel) {
+    let d = DATA.filter(x => x.Ano === ano && x.Fluxo === fluxo);
+    if (ncmSel) d = d.filter(x => ncmSel.includes(x.Label));
     if (d.length === 0) {
         plotVazio(divId, "Nenhum dado de " + fluxo + " em " + ano);
         return;
     }
-    const labels = d.map(x => x.Label);
-    const values = d.map(x => x.Valor);
-    const cores = labels.map(l => CORES_CAT[l]);
+    const { col, colors } = getDimInfo(nivel);
+    const agg = new Map();
+    for (const item of d) {
+        const key = item[col];
+        agg.set(key, (agg.get(key) || 0) + item.Valor);
+    }
+    const entries = [...agg.entries()].filter(([, v]) => v > 0);
+    if (entries.length === 0) {
+        plotVazio(divId, "Nenhum dado de " + fluxo + " em " + ano);
+        return;
+    }
+    const labels = entries.map(e => e[0]);
+    const values = entries.map(e => e[1]);
+    const cores = labels.map(l => colors[l]);
     const trace = {
         labels: labels, values: values, type: "pie", hole: 0.48,
         marker: { colors: cores, line: { color: BG, width: 2 } },
-        textinfo: "label+percent",
+        textinfo: "percent",
         textfont: { color: TEXTO, size: 11 },
         customdata: values.map(fmtUsd),
         hovertemplate: "<b>%{label}</b><br>%{customdata}<br>%{percent}<extra></extra>",
     };
     const layout = layoutBase();
     delete layout.legend;
-    layout.title = { text: "Participação nas " + fluxo + "s — " + ano, font: { size: 15 } };
+    const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+    layout.title = { text: "Participa\u00e7\u00e3o nas " + fluxo + "s por " + nivelTxt + " \u2014 " + ano, font: { size: 15 } };
     layout.showlegend = true;
-    layout.legend = { orientation: "v", x: 1.01, y: 0.5, font: { color: TEXTO, size: 11 } };
-    layout.height = 420;
+    layout.legend = { orientation: "v", x: 1.02, y: 0.5, font: { color: TEXTO, size: 10 } };
+    layout.height = 440;
     Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
 }
 
-// ── Estado global e wiring dos controles ─────────────────────────────────
+// ── Estado e wiring dos controles ──────────────────────────────────────────
 function getSelectedNcms() {
     return [...document.querySelectorAll(".ncm-check:checked")].map(el => el.value);
 }
@@ -408,9 +445,7 @@ function getAnoRange() {
 }
 function updateAnoLabel() {
     const [lo, hi] = getAnoRange();
-    document.getElementById("ano-range-label").textContent = lo + " – " + hi;
-
-    // posiciona o trilho preenchido entre os dois handles
+    document.getElementById("ano-range-label").textContent = lo + " \u2013 " + hi;
     const min = parseInt(document.getElementById("ano-min").min);
     const max = parseInt(document.getElementById("ano-min").max);
     const pctLo = ((lo - min) / (max - min)) * 100;
@@ -425,17 +460,22 @@ function renderAll() {
     const [anoMin, anoMax] = getAnoRange();
 
     renderEvolucao("graph-evolucao", ncmSel, anoMin, anoMax);
-    renderSaldo("graph-saldo", ncmSel, anoMin, anoMax);
+
+    const saldoNivel = document.getElementById("saldo-nivel").value;
+    renderSaldo("graph-saldo", ncmSel, anoMin, anoMax, saldoNivel);
 
     const compFluxo = document.getElementById("comp-fluxo").value;
-    renderComposicao("graph-composicao", compFluxo, ncmSel, anoMin, anoMax);
+    const compNivel = document.getElementById("comp-nivel").value;
+    renderComposicao("graph-composicao", compFluxo, ncmSel, anoMin, anoMax, compNivel);
 
     const hmFluxo = document.getElementById("hm-fluxo").value;
-    renderHeatmap("graph-heatmap", hmFluxo);
+    const hmNivel = document.getElementById("hm-nivel").value;
+    renderHeatmap("graph-heatmap", hmFluxo, ncmSel, hmNivel);
 
     const donutFluxo = document.getElementById("donut-fluxo").value;
     const donutAno = parseInt(document.getElementById("donut-ano").value);
-    renderDonut("graph-donut", donutFluxo, donutAno);
+    const donutNivel = document.getElementById("donut-nivel").value;
+    renderDonut("graph-donut", donutFluxo, donutAno, ncmSel, donutNivel);
 }
 
 function toggleSection(key, visible) {
@@ -444,19 +484,11 @@ function toggleSection(key, visible) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // checkboxes de NCM
-    document.querySelectorAll(".ncm-check").forEach(el => {
-        el.addEventListener("change", renderAll);
-    });
-    // range de anos (dois inputs sobrepostos)
+    document.querySelectorAll(".ncm-check").forEach(el => el.addEventListener("change", renderAll));
     document.getElementById("ano-min").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
     document.getElementById("ano-max").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
-    // seletores de fluxo por gráfico
-    document.getElementById("comp-fluxo").addEventListener("change", renderAll);
-    document.getElementById("hm-fluxo").addEventListener("change", renderAll);
-    document.getElementById("donut-fluxo").addEventListener("change", renderAll);
-    document.getElementById("donut-ano").addEventListener("change", renderAll);
-    // checkboxes de visualizações ativas (show/hide seção inteira)
+    ["comp-fluxo", "comp-nivel", "hm-fluxo", "hm-nivel", "donut-fluxo", "donut-ano", "donut-nivel", "saldo-nivel"]
+        .forEach(id => document.getElementById(id).addEventListener("change", renderAll));
     document.querySelectorAll(".viz-check").forEach(el => {
         el.addEventListener("change", () => toggleSection(el.value, el.checked));
     });
@@ -467,7 +499,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </script>
 <script>
-  // ajusta o valor inicial do select de ano do donut para o ano mais recente
   document.getElementById("donut-ano").value = "2026";
 </script>
 </body>
