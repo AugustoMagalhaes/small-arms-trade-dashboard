@@ -2,9 +2,9 @@ import colorsys
 import json
 import os
 import sys
+import webbrowser
 
 import pandas as pd
-import plotly.graph_objects as go
 
 ARQUIVO = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "dados_small_arms.xlsx"
@@ -40,6 +40,40 @@ CATEGORIA_COR_BASE = {
 
 NCM_TO_CATEGORIA = {ncm: cat for cat, lst in CATEGORIAS.items() for ncm in lst}
 
+MES_NOMES = {
+    1: "Janeiro",
+    2: "Fevereiro",
+    3: "Março",
+    4: "Abril",
+    5: "Maio",
+    6: "Junho",
+    7: "Julho",
+    8: "Agosto",
+    9: "Setembro",
+    10: "Outubro",
+    11: "Novembro",
+    12: "Dezembro",
+}
+MES_ABREV = {
+    1: "Jan",
+    2: "Fev",
+    3: "Mar",
+    4: "Abr",
+    5: "Mai",
+    6: "Jun",
+    7: "Jul",
+    8: "Ago",
+    9: "Set",
+    10: "Out",
+    11: "Nov",
+    12: "Dez",
+}
+
+UNIDADE_MAP = {
+    "NUMERO (UNIDADE)": "Unidades",
+    "QUILOGRAMA LIQUIDO": "kg",
+}
+
 
 def gerar_shades(hex_base: str, n: int) -> list[str]:
     hex_base = hex_base.lstrip("#")
@@ -74,49 +108,109 @@ for _cat, _ncm_list in CATEGORIAS.items():
         CORES_CAT[_label] = _cor
 
 
-def get_dim_info(nivel: str):
-    if nivel == "Categoria":
-        return "Categoria", CATEGORIAS_LIST, CATEGORIA_COR_BASE
-    return "Label", NCMS, CORES_CAT
-
-
 def carregar_dados():
     df_raw = pd.read_excel(ARQUIVO, sheet_name="Resultado")
+
+    anos_detectados = sorted(
+        {
+            int(c.split(" - ")[1])
+            for c in df_raw.columns
+            if c.startswith("Exportação - ") or c.startswith("Importação - ")
+        }
+    )
+
     registros = []
     descricoes = {}
+    ncm_unidade: dict[str, str] = {}
+
     for _, row in df_raw.iterrows():
         ncm = int(row["Código NCM"])
         label = LABELS.get(ncm, str(ncm))
         categoria = NCM_TO_CATEGORIA.get(ncm, "Outros")
         descricoes[ncm] = str(row.get("Descrição NCM", "")).strip()
-        for col in df_raw.columns:
-            if col.startswith("Exportação") or col.startswith("Importação"):
-                p = col.split(" - ")
+
+        unidade_raw = str(row.get("Unidade estatística", "")).strip()
+        unidade = UNIDADE_MAP.get(unidade_raw, unidade_raw or "—")
+        ncm_unidade[label] = unidade
+
+        mes_raw = str(row["Mês"]).strip()
+        try:
+            mes_num = int(mes_raw.split(".")[0])
+        except (ValueError, IndexError):
+            continue
+        mes_nome = MES_NOMES.get(mes_num, mes_raw)
+
+        for fluxo in ("Exportação", "Importação"):
+            for ano in anos_detectados:
+                col_fob = f"{fluxo} - {ano} - Valor US$ FOB"
+                col_qtd = f"{fluxo} - {ano} - Quantidade Estatística"
+                if col_fob not in df_raw.columns:
+                    continue
+                fob = float(row[col_fob]) if pd.notna(row[col_fob]) else 0.0
+                qtd = (
+                    float(row[col_qtd])
+                    if col_qtd in df_raw.columns and pd.notna(row[col_qtd])
+                    else 0.0
+                )
                 registros.append(
                     {
                         "NCM": ncm,
                         "Label": label,
                         "Categoria": categoria,
-                        "Fluxo": p[0],
-                        "Ano": int(p[1]),
-                        "Valor": float(row[col]) if pd.notna(row[col]) else 0.0,
+                        "Unidade": unidade,
+                        "Fluxo": fluxo,
+                        "Ano": ano,
+                        "MesNum": mes_num,
+                        "Mes": mes_nome,
+                        "FOB": fob,
+                        "Quantidade": qtd,
                     }
                 )
-    return pd.DataFrame(registros), descricoes
+
+    return pd.DataFrame(registros), descricoes, ncm_unidade
 
 
-df, NCM_DESCRICOES_OFICIAIS = carregar_dados()
-ANOS = sorted(df["Ano"].unique())
+df, NCM_DESCRICOES_OFICIAIS, NCM_UNIDADE = carregar_dados()
+ANOS = sorted(int(a) for a in df["Ano"].unique())
+MESES = sorted(int(m) for m in df["MesNum"].unique())
 
-HEADER_FONTE_TEXTO = "Fonte: Comex Stat / MDIC · USD FOB · {} NCMs · {}–{}".format(
-    len(LABELS), int(ANOS[0]), int(ANOS[-1])
+CATEGORIA_UNIDADE: dict[str, str] = {}
+for _cat, _ncm_list in CATEGORIAS.items():
+    _unidades = {NCM_UNIDADE.get(LABELS[n]) for n in _ncm_list}
+    CATEGORIA_UNIDADE[_cat] = _unidades.pop() if len(_unidades) == 1 else "Mista"
+
+AVISOS_QUALIDADE: dict[int, str] = {
+    93062100: (
+        "Quantidade (kg) de 2011-2012 é inconsistente com o restante da série "
+        "(preço implícito abaixo de US$ 4/kg, contra US$ 16-33/kg de 2013 em diante), "
+        "sugerindo mudança na metodologia de mensuração da Quantidade Estatística pelo "
+        "Comex Stat/MDIC nesse período. Os valores de FOB não aparentam ser afetados."
+    ),
+}
+
+
+def fmt_usd(v):
+    if v >= 1e6:
+        return f"US$ {v / 1e6:.1f}M"
+    if v >= 1e3:
+        return f"US$ {v / 1e3:.0f}K"
+    return f"US$ {v:,.0f}"
+
+
+_total_export_fob = df.loc[df["Fluxo"] == "Exportação", "FOB"].sum()
+
+HEADER_FONTE_TEXTO = (
+    f"Fonte: Comex Stat / MDIC · USD FOB · dados mensais · {len(LABELS)} NCMs · "
+    f"{MES_ABREV[MESES[0]]}/{ANOS[0]}–{MES_ABREV[MESES[-1]]}/{ANOS[-1]} · "
+    f"Total exportado no período: {fmt_usd(_total_export_fob)}"
 )
 
 _desc_ordenadas = []
 for _cat, _ncm_list in CATEGORIAS.items():
     for _ncm in _ncm_list:
+        _unid = NCM_UNIDADE.get(LABELS[_ncm], "—")
         _desc_ordenadas.append(
-            f"{_ncm} — {LABELS[_ncm]}: {NCM_DESCRICOES_OFICIAIS.get(_ncm, '')}"
+            f"{_ncm} — {LABELS[_ncm]} ({_unid}): {NCM_DESCRICOES_OFICIAIS.get(_ncm, '')}"
         )
 HEADER_DETALHE_TEXTO = "\n".join(_desc_ordenadas)
 
@@ -128,836 +222,7 @@ TEXTO = "#E6EDF3"
 TEXTO2 = "#8B949E"
 
 
-def fmt_usd(v):
-    if v >= 1e6:
-        return f"US$ {v / 1e6:.1f}M"
-    if v >= 1e3:
-        return f"US$ {v / 1e3:.0f}K"
-    return f"US$ {v:,.0f}"
-
-
-def layout_base():
-    return dict(
-        paper_bgcolor=BG,
-        plot_bgcolor=BG2,
-        font=dict(family="Inter, Segoe UI, Arial", color=TEXTO, size=13),
-        margin=dict(t=70, b=60, l=105, r=30),
-        xaxis=dict(
-            gridcolor=BORDA,
-            zerolinecolor=BORDA,
-            tickfont=dict(color=TEXTO2),
-            title_font=dict(color=TEXTO2),
-        ),
-        yaxis=dict(
-            gridcolor=BORDA,
-            zerolinecolor=BORDA,
-            tickfont=dict(color=TEXTO2),
-            title_font=dict(color=TEXTO2),
-        ),
-        legend=dict(
-            bgcolor="rgba(0,0,0,0)",
-            bordercolor=BORDA,
-            borderwidth=1,
-            font=dict(color=TEXTO, size=11),
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="center",
-            x=0.5,
-        ),
-        hoverlabel=dict(bgcolor=BG3, bordercolor=BORDA, font=dict(color=TEXTO)),
-    )
-
-
-def fig_vazio(msg="Sem dados para o fluxo/período selecionado"):
-    fig = go.Figure()
-    fig.add_annotation(
-        text=f"<b>⚠  {msg}</b>",
-        x=0.5,
-        y=0.5,
-        xref="paper",
-        yref="paper",
-        showarrow=False,
-        font=dict(size=15, color=TEXTO2),
-    )
-    l = layout_base()
-    l["xaxis"]["visible"] = False
-    l["yaxis"]["visible"] = False
-    fig.update_layout(**l, height=200)
-    return fig
-
-
-def fig_evolucao(ncms_sel=None, anos_sel=None):
-    d = df.copy()
-    if ncms_sel is not None:
-        d = d[d["Label"].isin(ncms_sel)]
-    if anos_sel:
-        d = d[d["Ano"].between(anos_sel[0], anos_sel[1])]
-    if d.empty or d["Valor"].sum() == 0:
-        return fig_vazio("Nenhuma categoria selecionada ou sem dados no período")
-    tot = d.groupby(["Ano", "Fluxo"])["Valor"].sum().reset_index()
-    fig = go.Figure()
-    for fluxo, cor, rgba in [
-        ("Exportação", "#3B82F6", "rgba(59,130,246,0.12)"),
-        ("Importação", "#EF4444", "rgba(239,68,68,0.12)"),
-    ]:
-        s = tot[tot["Fluxo"] == fluxo]
-        if s.empty:
-            continue
-        fig.add_trace(
-            go.Scatter(
-                x=s["Ano"],
-                y=s["Valor"],
-                name=fluxo,
-                mode="lines+markers",
-                line=dict(color=cor, width=3),
-                marker=dict(size=8, color=cor, line=dict(color=BG, width=2)),
-                fill="tozeroy",
-                fillcolor=rgba,
-                hovertemplate=f"<b>%{{x}}</b><br>{fluxo}: %{{customdata}}<extra></extra>",
-                customdata=[fmt_usd(v) for v in s["Valor"]],
-            )
-        )
-    lb = layout_base()
-    lb["xaxis"] = dict(
-        title="Ano",
-        gridcolor=BORDA,
-        zerolinecolor=BORDA,
-        tickfont=dict(color=TEXTO2),
-        title_font=dict(color=TEXTO2),
-        dtick=1,
-        tickmode="linear",
-        tickangle=-45,
-    )
-    fig.update_layout(
-        **lb,
-        title=dict(
-            text="Evolução Total — Exportação vs Importação (USD FOB)",
-            font=dict(size=15),
-        ),
-        yaxis_title="USD FOB",
-        yaxis_tickformat="$,.0f",
-    )
-    return fig
-
-
-def fig_saldo(ncms_sel=None, anos_sel=None, nivel="Categoria"):
-    d = df.copy()
-    if ncms_sel is not None:
-        d = d[d["Label"].isin(ncms_sel)]
-    if anos_sel:
-        d = d[d["Ano"].between(anos_sel[0], anos_sel[1])]
-    if d.empty:
-        return fig_vazio("Nenhuma categoria selecionada ou sem dados no período")
-    col, order, colors = get_dim_info(nivel)
-    pivot = (
-        d.pivot_table(
-            index=[col, "Ano"], columns="Fluxo", values="Valor", aggfunc="sum"
-        )
-        .fillna(0)
-        .reset_index()
-    )
-    pivot["Saldo"] = pivot.get("Exportação", 0) - pivot.get("Importação", 0)
-    fig = go.Figure()
-    for item in order:
-        sub = pivot[pivot[col] == item].sort_values("Ano")
-        if sub.empty or sub["Saldo"].abs().sum() == 0:
-            continue
-        fig.add_trace(
-            go.Bar(
-                x=sub["Ano"],
-                y=sub["Saldo"],
-                name=item,
-                marker=dict(color=colors[item], opacity=0.9),
-                hovertemplate=f"<b>{item}</b><br>Ano: %{{x}}<br>Saldo: %{{customdata}}<extra></extra>",
-                customdata=[fmt_usd(v) for v in sub["Saldo"]],
-            )
-        )
-    if not fig.data:
-        return fig_vazio("Nenhuma categoria selecionada ou sem dados no período")
-    fig.add_hline(y=0, line_dash="dot", line_color=TEXTO2, opacity=0.6)
-    fig.update_layout(
-        **layout_base(),
-        title=dict(
-            text="Saldo Comercial por Categoria (Exportação − Importação)"
-            if nivel == "Categoria"
-            else "Saldo Comercial por NCM (Exportação − Importação)",
-            font=dict(size=15),
-        ),
-        barmode="group",
-        xaxis_title="Ano",
-        yaxis_title="Saldo (USD FOB)",
-        yaxis_tickformat="$,.0f",
-    )
-    fig.update_xaxes(dtick=1, tickangle=-45)
-    return fig
-
-
-def fig_composicao(fluxo="Exportação", ncms_sel=None, anos_sel=None, nivel="Categoria"):
-    d = df[df["Fluxo"] == fluxo].copy()
-    if ncms_sel is not None:
-        d = d[d["Label"].isin(ncms_sel)]
-    if anos_sel:
-        d = d[d["Ano"].between(anos_sel[0], anos_sel[1])]
-    if d.empty or d["Valor"].sum() == 0:
-        return fig_vazio(f"Nenhum dado de {fluxo} para os filtros selecionados")
-    col, order, colors = get_dim_info(nivel)
-    fig = go.Figure()
-    for item in order:
-        s = (
-            d[d[col] == item]
-            .groupby("Ano", as_index=False)["Valor"]
-            .sum()
-            .sort_values("Ano")
-        )
-        if s.empty:
-            continue
-        valores = [v if v > 0 else None for v in s["Valor"]]
-        custom = [fmt_usd(v) if v else "Sem dados" for v in s["Valor"]]
-        if all(v is None for v in valores):
-            continue
-        fig.add_trace(
-            go.Bar(
-                x=s["Ano"],
-                y=valores,
-                name=item,
-                marker_color=colors[item],
-                hovertemplate=f"<b>{item}</b><br>%{{x}}: %{{customdata}}<extra></extra>",
-                customdata=custom,
-            )
-        )
-    if not fig.data:
-        return fig_vazio(f"Nenhum dado de {fluxo} para os filtros selecionados")
-    titulo_nivel = "Categoria" if nivel == "Categoria" else "NCM"
-    fig.update_layout(
-        **layout_base(),
-        title=dict(
-            text=f"Composição das {fluxo}s por {titulo_nivel}", font=dict(size=15)
-        ),
-        barmode="stack",
-        xaxis_title="Ano",
-        yaxis_title=f"{fluxo} (USD FOB)",
-        yaxis_tickformat="$,.0f",
-    )
-    fig.update_xaxes(dtick=1, tickangle=-45)
-    return fig
-
-
-def fig_heatmap(fluxo="Exportação", ncms_sel=None, nivel="NCM"):
-    d = df[df["Fluxo"] == fluxo].copy()
-    if ncms_sel is not None:
-        d = d[d["Label"].isin(ncms_sel)]
-    if d.empty or d["Valor"].sum() == 0:
-        return fig_vazio(f"Nenhum dado de {fluxo} para exibir no heatmap")
-    col, order, colors = get_dim_info(nivel)
-    pivot = d.pivot_table(index=col, columns="Ano", values="Valor", aggfunc="sum")
-    pivot = pivot.reindex(order).reindex(columns=ANOS).fillna(0)
-    z_vals = [[v if v > 0 else None for v in row] for row in pivot.values]
-    text = [[fmt_usd(v) if v else "—" for v in row] for row in pivot.values]
-    fig = go.Figure(
-        data=go.Heatmap(
-            z=z_vals,
-            x=[str(int(a)) for a in pivot.columns],
-            y=pivot.index,
-            colorscale=[
-                [0.0, "#1C2128"],
-                [0.15, "#1D4ED8"],
-                [0.4, "#0EA5E9"],
-                [0.65, "#22C55E"],
-                [0.85, "#F59E0B"],
-                [1.0, "#EF4444"],
-            ],
-            text=text,
-            texttemplate="%{text}",
-            textfont=dict(size=9, color=TEXTO),
-            hoverongaps=False,
-            hovertemplate="<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
-            colorbar=dict(
-                title=dict(text="USD FOB", font=dict(color=TEXTO2)),
-                tickfont=dict(color=TEXTO2),
-                bgcolor=BG2,
-                bordercolor=BORDA,
-                outlinecolor=BORDA,
-            ),
-            zmin=0,
-        )
-    )
-    hml = layout_base()
-    hml["xaxis"] = dict(
-        title="Ano",
-        gridcolor=BORDA,
-        tickfont=dict(color=TEXTO2),
-        dtick=1,
-        tickangle=-45,
-    )
-    hml["yaxis"] = dict(gridcolor=BORDA, tickfont=dict(color=TEXTO, size=10))
-    hml["margin"] = dict(t=70, b=60, l=230 if nivel == "NCM" else 150, r=30)
-    titulo_nivel = "Categoria" if nivel == "Categoria" else "NCM"
-    fig.update_layout(
-        **hml,
-        title=dict(
-            text=f"Heatmap — Intensidade de {fluxo}s por {titulo_nivel} e Ano",
-            font=dict(size=15),
-        ),
-        height=110 + 32 * len(order),
-    )
-    return fig
-
-
-def fig_donut(fluxo="Exportação", ano=2025, ncms_sel=None, nivel="Categoria"):
-    d = df[(df["Ano"] == ano) & (df["Fluxo"] == fluxo)].copy()
-    if ncms_sel is not None:
-        d = d[d["Label"].isin(ncms_sel)]
-    if d.empty:
-        return fig_vazio(f"Nenhum dado de {fluxo} em {ano}")
-    col, order, colors = get_dim_info(nivel)
-    agg = d.groupby(col, as_index=False)["Valor"].sum()
-    agg = agg[agg["Valor"] > 0]
-    if agg.empty:
-        return fig_vazio(f"Nenhum dado de {fluxo} em {ano}")
-    cores = [colors[v] for v in agg[col]]
-    fig = go.Figure(
-        data=go.Pie(
-            labels=agg[col],
-            values=agg["Valor"],
-            hole=0.48,
-            marker=dict(colors=cores, line=dict(color=BG, width=2)),
-            textinfo="percent",
-            textfont=dict(color=TEXTO, size=11),
-            hovertemplate="<b>%{label}</b><br>%{customdata}<br>%{percent}<extra></extra>",
-            customdata=[fmt_usd(v) for v in agg["Valor"]],
-        )
-    )
-    pl = layout_base()
-    pl.pop("legend", None)
-    titulo_nivel = "Categoria" if nivel == "Categoria" else "NCM"
-    fig.update_layout(
-        **pl,
-        title=dict(
-            text=f"Participação nas {fluxo}s por {titulo_nivel} — {ano}",
-            font=dict(size=15),
-        ),
-        showlegend=True,
-        legend=dict(orientation="v", x=1.02, y=0.5, font=dict(color=TEXTO, size=10)),
-        height=440,
-    )
-    return fig
-
-
-def rodar_dash():
-    import dash
-    from dash import Input, Output, callback, dcc, html
-
-    app = dash.Dash(
-        __name__,
-        title="Armas de Fogo — Comex Stat",
-        suppress_callback_exceptions=True,
-    )
-
-    DARK_CSS = f"""
-.dash-dropdown-wrapper {{ background: {BG3} !important; border: 1px solid {BORDA} !important; border-radius: 8px !important; }}
-.dash-dropdown-trigger {{ background: {BG3} !important; color: {TEXTO} !important; border-radius: 8px !important; padding: 6px 10px !important; }}
-.dash-dropdown-placeholder {{ color: {TEXTO2} !important; }}
-.dash-dropdown-value {{ color: {TEXTO} !important; }}
-.dash-dropdown-value-item {{ background: {BG2} !important; border: 1px solid {BORDA} !important; border-radius: 4px !important; color: {TEXTO} !important; font-size: 12px !important; }}
-.dash-dropdown-value-count {{ background: {BG2} !important; color: {TEXTO2} !important; border: 1px solid {BORDA} !important; border-radius: 4px !important; padding: 1px 7px !important; font-size: 12px !important; }}
-.dash-dropdown-trigger-icon svg, .dash-dropdown-trigger-icon svg path, .dash-dropdown-trigger-icon svg polyline {{ stroke: {TEXTO2} !important; fill: none !important; }}
-.dash-dropdown-clear {{ color: {TEXTO2} !important; }}
-.dash-dropdown-content {{ background: {BG3} !important; border: 1px solid {BORDA} !important; border-radius: 8px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important; z-index: 9999 !important; }}
-.dash-dropdown-option {{ background: {BG3} !important; color: {TEXTO} !important; padding: 8px 12px !important; }}
-.dash-dropdown-option:hover, .dash-dropdown-option[aria-selected="true"], .dash-dropdown-option[data-focused="true"] {{ background: {BG2} !important; color: {TEXTO} !important; }}
-.dash-dropdown-search-container {{ background: {BG3} !important; border-bottom: 1px solid {BORDA} !important; }}
-.dash-dropdown-search input {{ background: transparent !important; color: {TEXTO} !important; border: none !important; outline: none !important; }}
-.dash-dropdown-search input::placeholder {{ color: {TEXTO2} !important; }}
-.dash-dropdown-grid-container {{ background: {BG3} !important; }}
-.dash-dropdown-actions {{ background: {BG3} !important; border-top: 1px solid {BORDA} !important; }}
-.dash-dropdown-action-button {{ color: {TEXTO2} !important; }}
-.dash-dropdown-action-button:hover {{ color: {TEXTO} !important; }}
-body, #react-entry-point, ._dash-loading {{ background-color: {BG} !important; }}
-.rc-slider-track {{ background-color: #3B82F6 !important; }}
-.rc-slider-handle {{ border-color: #3B82F6 !important; background: {BG2} !important; }}
-.rc-slider-rail {{ background-color: {BORDA} !important; }}
-.dash-slider-tooltip, [class*="dash-slider-tooltip"] {{ --Dash-Tooltip-Background-Color: {BG2} !important; --Dash-Tooltip-Border-Color: {BORDA} !important; background: {BG2} !important; color: {TEXTO} !important; border: 1px solid {BORDA} !important; }}
-.dash-tooltip {{ background: {BG2} !important; color: {TEXTO} !important; border: 1px solid {BORDA} !important; }}
-.dash-tooltip::before, .dash-tooltip::after {{ border-top-color: {BG2} !important; }}
-/* checklist de categorias */
-.cat-checklist label {{ display:flex; align-items:center; gap:6px; margin-bottom:4px; font-size:0.8rem; color:{TEXTO}; cursor:pointer; }}
-.cat-checklist input[type=checkbox] {{ accent-color:#3B82F6; cursor:pointer; }}
-details.ncm-details summary {{ cursor:pointer; color:{TEXTO2}; font-size:0.78rem; margin-bottom:8px; }}
-"""
-
-    app.index_string = f"""<!DOCTYPE html>
-<html>
-<head>
-    {{%metas%}}
-    <title>{{%title%}}</title>
-    {{%favicon%}}
-    {{%css%}}
-    <style>{DARK_CSS}</style>
-</head>
-<body style="background:{BG};margin:0">
-    {{%app_entry%}}
-    <footer>{{%config%}}{{%scripts%}}{{%renderer%}}</footer>
-</body>
-</html>"""
-
-    dd_style = {"borderRadius": "8px"}
-
-    def card(children):
-        return html.Div(
-            style={
-                "background": BG2,
-                "border": f"1px solid {BORDA}",
-                "borderRadius": "12px",
-                "padding": "20px 16px",
-            },
-            children=children,
-        )
-
-    def lbl(txt):
-        return html.Label(
-            txt,
-            style={
-                "color": TEXTO2,
-                "fontSize": "0.75rem",
-                "marginBottom": "6px",
-                "display": "block",
-                "textTransform": "uppercase",
-                "letterSpacing": "0.5px",
-            },
-        )
-
-    ano_mais_recente = int(ANOS[-1])
-    ano_opts = [{"label": str(int(a)), "value": int(a)} for a in ANOS]
-    fluxo_opts = [
-        {"label": "Exportação", "value": "Exportação"},
-        {"label": "Importação", "value": "Importação"},
-    ]
-    nivel_opts = [
-        {"label": "Categoria (agrupado)", "value": "Categoria"},
-        {"label": "NCM (detalhado)", "value": "NCM"},
-    ]
-    graf_opts = [
-        {"label": "📈 Evolução Total", "value": "evolucao"},
-        {"label": "⚖️ Saldo Comercial", "value": "saldo"},
-        {"label": "📦 Composição (Exp/Imp)", "value": "composicao"},
-        {"label": "🌡️ Heatmap", "value": "heatmap"},
-        {"label": "🥧 Participação (Donut)", "value": "donut"},
-    ]
-
-    def checklist_categoria(cat_key, cat_nome, ncm_list):
-        opts = [{"label": LABELS[n], "value": LABELS[n]} for n in ncm_list]
-        return html.Div(
-            style={"marginBottom": "10px"},
-            children=[
-                html.Div(
-                    cat_nome,
-                    style={
-                        "color": CATEGORIA_COR_BASE[cat_nome],
-                        "fontSize": "0.78rem",
-                        "fontWeight": "700",
-                        "marginBottom": "4px",
-                        "textTransform": "uppercase",
-                        "letterSpacing": "0.4px",
-                    },
-                ),
-                dcc.Checklist(
-                    id=f"ncm-{cat_key}",
-                    options=opts,
-                    value=[o["value"] for o in opts],
-                    className="cat-checklist",
-                ),
-            ],
-        )
-
-    app.layout = html.Div(
-        style={
-            "background": BG,
-            "minHeight": "100vh",
-            "fontFamily": "Inter, Segoe UI, Arial",
-            "color": TEXTO,
-        },
-        children=[
-            html.Div(
-                style={
-                    "background": BG2,
-                    "borderBottom": f"1px solid {BORDA}",
-                    "padding": "22px 40px",
-                },
-                children=[
-                    html.H1(
-                        "Comércio Exterior de Armas de Fogo — Brasil (2011–2026)",
-                        style={
-                            "fontSize": "1.4rem",
-                            "fontWeight": "700",
-                            "color": TEXTO,
-                        },
-                    ),
-                    html.P(
-                        HEADER_FONTE_TEXTO,
-                        style={
-                            "color": TEXTO2,
-                            "fontSize": "0.82rem",
-                            "marginTop": "5px",
-                        },
-                    ),
-                    html.Details(
-                        className="ncm-details",
-                        style={"marginTop": "8px"},
-                        children=[
-                            html.Summary(
-                                f"Ver descrição completa dos {len(LABELS)} NCMs"
-                            ),
-                            html.Pre(
-                                HEADER_DETALHE_TEXTO,
-                                style={
-                                    "color": TEXTO2,
-                                    "fontSize": "0.74rem",
-                                    "whiteSpace": "pre-wrap",
-                                    "fontFamily": "inherit",
-                                    "margin": 0,
-                                },
-                            ),
-                        ],
-                    ),
-                ],
-            ),
-            html.Div(
-                style={
-                    "maxWidth": "1200px",
-                    "margin": "0 auto",
-                    "padding": "20px 24px 0",
-                },
-                children=[
-                    card(
-                        [
-                            html.Div(
-                                style={
-                                    "display": "grid",
-                                    "gridTemplateColumns": "1.3fr 2fr 1.2fr",
-                                    "gap": "20px",
-                                    "alignItems": "start",
-                                },
-                                children=[
-                                    html.Div(
-                                        [
-                                            lbl("Visualizações ativas"),
-                                            dcc.Dropdown(
-                                                id="sel-graficos",
-                                                options=graf_opts,
-                                                value=[
-                                                    "evolucao",
-                                                    "saldo",
-                                                    "composicao",
-                                                    "heatmap",
-                                                    "donut",
-                                                ],
-                                                multi=True,
-                                                clearable=False,
-                                                style=dd_style,
-                                            ),
-                                        ]
-                                    ),
-                                    html.Div(
-                                        [
-                                            lbl("Categorias / NCM"),
-                                            html.Div(
-                                                style={
-                                                    "display": "grid",
-                                                    "gridTemplateColumns": "1fr 1fr 1fr",
-                                                    "gap": "14px",
-                                                },
-                                                children=[
-                                                    checklist_categoria(
-                                                        "armas",
-                                                        "Armas de Fogo",
-                                                        CATEGORIAS["Armas de Fogo"],
-                                                    ),
-                                                    checklist_categoria(
-                                                        "municao",
-                                                        "Munição e Cartuchos",
-                                                        CATEGORIAS[
-                                                            "Munição e Cartuchos"
-                                                        ],
-                                                    ),
-                                                    checklist_categoria(
-                                                        "partes",
-                                                        "Partes e Acessórios",
-                                                        CATEGORIAS[
-                                                            "Partes e Acessórios"
-                                                        ],
-                                                    ),
-                                                ],
-                                            ),
-                                        ]
-                                    ),
-                                    html.Div(
-                                        [
-                                            lbl(
-                                                f"Intervalo de anos ({int(ANOS[0])}–{int(ANOS[-1])})"
-                                            ),
-                                            dcc.RangeSlider(
-                                                id="sel-anos",
-                                                min=int(ANOS[0]),
-                                                max=int(ANOS[-1]),
-                                                step=1,
-                                                value=[int(ANOS[0]), int(ANOS[-1])],
-                                                marks={
-                                                    int(a): {
-                                                        "label": str(int(a))[2:],
-                                                        "style": {
-                                                            "color": TEXTO2,
-                                                            "fontSize": "10px",
-                                                        },
-                                                    }
-                                                    for a in ANOS
-                                                    if int(a) % 2 == 1
-                                                },
-                                                tooltip={
-                                                    "placement": "bottom",
-                                                    "always_visible": True,
-                                                },
-                                            ),
-                                        ]
-                                    ),
-                                ],
-                            ),
-                        ]
-                    ),
-                ],
-            ),
-            dcc.Store(id="ncm-store"),
-            html.Div(
-                id="graficos-container",
-                style={
-                    "maxWidth": "1200px",
-                    "margin": "0 auto",
-                    "padding": "20px 24px",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "gap": "20px",
-                },
-            ),
-            html.Footer(
-                "Grupo de Pesquisa · dados_small_arms.xlsx",
-                style={
-                    "textAlign": "center",
-                    "color": TEXTO2,
-                    "fontSize": "0.78rem",
-                    "padding": "20px",
-                    "borderTop": f"1px solid {BORDA}",
-                },
-            ),
-        ],
-    )
-
-    @callback(
-        Output("ncm-store", "data"),
-        Input("ncm-armas", "value"),
-        Input("ncm-municao", "value"),
-        Input("ncm-partes", "value"),
-    )
-    def combinar_ncm(a, m, p):
-        return (a or []) + (m or []) + (p or [])
-
-    def bloco_nivel(id_nivel, default="Categoria"):
-        return html.Div(
-            [
-                lbl("Nível"),
-                dcc.Dropdown(
-                    id=id_nivel,
-                    options=nivel_opts,
-                    value=default,
-                    clearable=False,
-                    style={**dd_style, "width": "190px"},
-                ),
-            ]
-        )
-
-    def bloco_fluxo(id_fluxo, default="Exportação"):
-        return html.Div(
-            [
-                lbl("Fluxo"),
-                dcc.Dropdown(
-                    id=id_fluxo,
-                    options=fluxo_opts,
-                    value=default,
-                    clearable=False,
-                    style={**dd_style, "width": "160px"},
-                ),
-            ]
-        )
-
-    @callback(
-        Output("graficos-container", "children"),
-        Input("sel-graficos", "value"),
-        Input("ncm-store", "data"),
-        Input("sel-anos", "value"),
-    )
-    def atualizar(graficos_sel, ncms_sel, anos_sel):
-        if not graficos_sel:
-            return html.P(
-                "Selecione ao menos uma visualização.",
-                style={"color": TEXTO2, "padding": "40px", "textAlign": "center"},
-            )
-
-        cards_out = []
-        for g in graficos_sel:
-            if g == "evolucao":
-                fig = fig_evolucao(ncms_sel, anos_sel)
-                fig.update_layout(height=440)
-                titulo, controles = "📈 Evolução Total", None
-                gcontent = dcc.Graph(
-                    figure=fig, config={"displayModeBar": True, "responsive": True}
-                )
-
-            elif g == "saldo":
-                titulo = "⚖️ Saldo Comercial"
-                controles = html.Div(
-                    style={"display": "flex", "gap": "12px", "marginBottom": "10px"},
-                    children=[bloco_nivel("saldo-nivel")],
-                )
-                gcontent = dcc.Graph(
-                    id="graph-saldo",
-                    config={"displayModeBar": True, "responsive": True},
-                )
-
-            elif g == "composicao":
-                titulo = "📦 Composição por Fluxo"
-                controles = html.Div(
-                    style={"display": "flex", "gap": "12px", "marginBottom": "10px"},
-                    children=[bloco_fluxo("comp-fluxo"), bloco_nivel("comp-nivel")],
-                )
-                gcontent = dcc.Graph(
-                    id="graph-composicao",
-                    config={"displayModeBar": True, "responsive": True},
-                )
-
-            elif g == "heatmap":
-                titulo = "🌡️ Heatmap de Intensidade"
-                controles = html.Div(
-                    style={"display": "flex", "gap": "12px", "marginBottom": "10px"},
-                    children=[
-                        bloco_fluxo("hm-fluxo"),
-                        bloco_nivel("hm-nivel", default="NCM"),
-                    ],
-                )
-                gcontent = dcc.Graph(
-                    id="graph-heatmap",
-                    config={"displayModeBar": True, "responsive": True},
-                )
-
-            elif g == "donut":
-                titulo = "🥧 Participação por Ano"
-                controles = html.Div(
-                    style={
-                        "display": "flex",
-                        "gap": "12px",
-                        "marginBottom": "10px",
-                        "flexWrap": "wrap",
-                    },
-                    children=[
-                        bloco_fluxo("donut-fluxo"),
-                        bloco_nivel("donut-nivel"),
-                        html.Div(
-                            [
-                                lbl(f"Ano ({int(ANOS[0])}–{int(ANOS[-1])})"),
-                                dcc.Dropdown(
-                                    id="donut-ano",
-                                    options=ano_opts,
-                                    value=ano_mais_recente,
-                                    clearable=False,
-                                    optionHeight=36,
-                                    style={**dd_style, "width": "110px"},
-                                ),
-                            ]
-                        ),
-                    ],
-                )
-                gcontent = dcc.Graph(
-                    id="graph-donut",
-                    config={"displayModeBar": True, "responsive": True},
-                )
-            else:
-                continue
-
-            inner = [
-                html.H3(
-                    titulo,
-                    style={
-                        "color": TEXTO2,
-                        "fontSize": "0.75rem",
-                        "textTransform": "uppercase",
-                        "letterSpacing": "0.5px",
-                        "marginBottom": "10px",
-                    },
-                )
-            ]
-            if controles:
-                inner.append(controles)
-            inner.append(gcontent)
-            cards_out.append(card(inner))
-
-        return cards_out
-
-    @callback(
-        Output("graph-saldo", "figure"),
-        Input("saldo-nivel", "value"),
-        Input("ncm-store", "data"),
-        Input("sel-anos", "value"),
-        prevent_initial_call=False,
-    )
-    def upd_saldo(nivel, ncms_sel, anos_sel):
-        fig = fig_saldo(ncms_sel, anos_sel, nivel)
-        fig.update_layout(height=440)
-        return fig
-
-    @callback(
-        Output("graph-composicao", "figure"),
-        Input("comp-fluxo", "value"),
-        Input("comp-nivel", "value"),
-        Input("ncm-store", "data"),
-        Input("sel-anos", "value"),
-        prevent_initial_call=False,
-    )
-    def upd_comp(fluxo, nivel, ncms_sel, anos_sel):
-        fig = fig_composicao(fluxo, ncms_sel, anos_sel, nivel)
-        fig.update_layout(height=440)
-        return fig
-
-    @callback(
-        Output("graph-heatmap", "figure"),
-        Input("hm-fluxo", "value"),
-        Input("hm-nivel", "value"),
-        Input("ncm-store", "data"),
-        prevent_initial_call=False,
-    )
-    def upd_hm(fluxo, nivel, ncms_sel):
-        fig = fig_heatmap(fluxo, ncms_sel, nivel)
-        return fig
-
-    @callback(
-        Output("graph-donut", "figure"),
-        Input("donut-fluxo", "value"),
-        Input("donut-ano", "value"),
-        Input("donut-nivel", "value"),
-        Input("ncm-store", "data"),
-        prevent_initial_call=False,
-    )
-    def upd_donut(fluxo, ano, nivel, ncms_sel):
-        fig = fig_donut(fluxo, int(ano), ncms_sel, nivel)
-        return fig
-
-    app.run(debug=False, port=8050)
-
-
-def exportar_html_estatico():
-    """
-    Gera docs/index.html totalmente interativo e estático (Plotly.js no
-    navegador, sem servidor Python). Replica os mesmos controles do Dash:
-    checkboxes de NCM agrupadas por categoria, seletor de nível de
-    agregação (Categoria/NCM) por gráfico, range de anos e fluxo.
-    """
+def gerar_html():
     os.makedirs("docs", exist_ok=True)
 
     records = df.to_dict("records")
@@ -966,349 +231,685 @@ def exportar_html_estatico():
     categorias_json = json.dumps(CATEGORIAS_LIST, ensure_ascii=False)
     cores_ncm_json = json.dumps(CORES_CAT, ensure_ascii=False)
     cores_cat_json = json.dumps(CATEGORIA_COR_BASE, ensure_ascii=False)
-    anos_json = json.dumps([int(a) for a in ANOS])
-    label_to_cat_json = json.dumps(
-        {LABELS[ncm]: cat for cat, lst in CATEGORIAS.items() for ncm in lst},
-        ensure_ascii=False,
+    anos_json = json.dumps(ANOS)
+    meses_json = json.dumps(MESES)
+    mes_abrev_json = json.dumps(
+        {str(k): v for k, v in MES_ABREV.items()}, ensure_ascii=False
     )
+    ncm_unidade_json = json.dumps(NCM_UNIDADE, ensure_ascii=False)
+    categoria_unidade_json = json.dumps(CATEGORIA_UNIDADE, ensure_ascii=False)
 
     header_html = HEADER_FONTE_TEXTO
     detalhe_html = HEADER_DETALHE_TEXTO.replace("\n", "<br>")
 
     js = r"""
-const DATA = __DATA_JSON__;
-const NCMS = __NCMS_JSON__;
-const CATEGORIAS_LIST = __CATEGORIAS_JSON__;
-const CORES_NCM = __CORES_NCM_JSON__;
-const CORES_CAT_BASE = __CORES_CAT_JSON__;
-const LABEL_TO_CAT = __LABEL_TO_CAT_JSON__;
-const ANOS = __ANOS_JSON__;
+    const DATA = __DATA_JSON__;
+    const NCMS = __NCMS_JSON__;
+    const CATEGORIAS_LIST = __CATEGORIAS_JSON__;
+    const CORES_NCM = __CORES_NCM_JSON__;
+    const CORES_CAT_BASE = __CORES_CAT_JSON__;
+    const ANOS = __ANOS_JSON__;
+    const MESES = __MESES_JSON__;
+    const MES_ABREV = __MES_ABREV_JSON__;
+    const NCM_UNIDADE = __NCM_UNIDADE_JSON__;
+    const CATEGORIA_UNIDADE = __CATEGORIA_UNIDADE_JSON__;
 
-const BG = "__BG__", BG2 = "__BG2__", BG3 = "__BG3__",
-      BORDA = "__BORDA__", TEXTO = "__TEXTO__", TEXTO2 = "__TEXTO2__";
+    const BG = "__BG__", BG2 = "__BG2__", BG3 = "__BG3__",
+        BORDA = "__BORDA__", TEXTO = "__TEXTO__", TEXTO2 = "__TEXTO2__";
 
-function fmtUsd(v) {
-    if (v >= 1e6) return "US$ " + (v / 1e6).toFixed(1) + "M";
-    if (v >= 1e3) return "US$ " + Math.round(v / 1e3) + "K";
-    return "US$ " + v.toLocaleString("en-US", {maximumFractionDigits: 0});
-}
+    const FLUXO_EXP = "Exporta\u00e7\u00e3o", FLUXO_IMP = "Importa\u00e7\u00e3o";
 
-function getDimInfo(nivel) {
-    if (nivel === "Categoria") return { col: "Categoria", order: CATEGORIAS_LIST, colors: CORES_CAT_BASE };
-    return { col: "Label", order: NCMS, colors: CORES_NCM };
-}
-
-function layoutBase() {
-    return {
-        paper_bgcolor: BG, plot_bgcolor: BG2,
-        font: { family: "Inter, Segoe UI, Arial", color: TEXTO, size: 13 },
-        margin: { t: 70, b: 60, l: 105, r: 30 },
-        xaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
-                 tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
-        yaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
-                 tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
-        legend: { bgcolor: "rgba(0,0,0,0)", bordercolor: BORDA, borderwidth: 1,
-                  font: { color: TEXTO, size: 11 }, orientation: "h",
-                  yanchor: "bottom", y: 1.02, xanchor: "center", x: 0.5 },
-        hoverlabel: { bgcolor: BG3, bordercolor: BORDA, font: { color: TEXTO } },
-    };
-}
-
-function plotVazio(divId, msg) {
-    const layout = layoutBase();
-    layout.xaxis.visible = false;
-    layout.yaxis.visible = false;
-    layout.height = 200;
-    layout.annotations = [{
-        text: "\u26a0  " + msg, x: 0.5, y: 0.5, xref: "paper", yref: "paper",
-        showarrow: false, font: { size: 15, color: TEXTO2 },
-    }];
-    Plotly.newPlot(divId, [], layout, { displayModeBar: true, responsive: true });
-}
-
-function sumByAno(arr) {
-    const map = new Map();
-    for (const item of arr) map.set(item.Ano, (map.get(item.Ano) || 0) + item.Valor);
-    return map;
-}
-
-function filterBase(ncmSel, anoMin, anoMax) {
-    return DATA.filter(d => ncmSel.includes(d.Label) && d.Ano >= anoMin && d.Ano <= anoMax);
-}
-
-// ── Evolução Total ────────────────────────────────────────────────────────
-function renderEvolucao(divId, ncmSel, anoMin, anoMax) {
-    const d = filterBase(ncmSel, anoMin, anoMax);
-    const total = d.reduce((s, x) => s + x.Valor, 0);
-    if (d.length === 0 || total === 0) {
-        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
-        return;
+    function fmtUsd(v) {
+        if (v === null || v === undefined) return "\u2014";
+        const sign = v < 0 ? "-" : "";
+        const av = Math.abs(v);
+        if (av >= 1e6) return sign + "US$ " + (av / 1e6).toFixed(1) + "M";
+        if (av >= 1e3) return sign + "US$ " + Math.round(av / 1e3) + "K";
+        return sign + "US$ " + av.toLocaleString("en-US", { maximumFractionDigits: 0 });
     }
-    const traces = [];
-    const specs = [
-        ["Exporta\u00e7\u00e3o", "#3B82F6", "rgba(59,130,246,0.12)"],
-        ["Importa\u00e7\u00e3o", "#EF4444", "rgba(239,68,68,0.12)"],
+    function fmtQtd(v, unidade) {
+        if (v === null || v === undefined) return "\u2014";
+        const num = v.toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+        return unidade === "kg" ? num + " kg" : num + " un";
+    }
+    function fmtPreco(v, unidade) {
+        if (v === null || v === undefined) return "\u2014";
+        const suf = unidade === "kg" ? "/kg" : "/un";
+        return "US$ " + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + suf;
+    }
+    function metricLabel(metric) {
+        return metric === "fob" ? "FOB (US$)" : "Quantidade";
+    }
+    function unidadeLabel(unidade) {
+        return unidade === "kg" ? "kg" : "unidades";
+    }
+
+    const PALETA_DINAMICA = [
+        "#3B82F6", "#F97316", "#22C55E", "#EF4444", "#A855F7", "#EAB308",
+        "#06B6D4", "#EC4899", "#84CC16", "#6366F1", "#F43F5E", "#14B8A6",
     ];
-    for (const [fluxo, cor, rgba] of specs) {
-        const sub = d.filter(x => x.Fluxo === fluxo);
-        if (sub.length === 0) continue;
-        const byAno = sumByAno(sub);
-        const anos = [...byAno.keys()].sort((a, b) => a - b);
-        const valores = anos.map(a => byAno.get(a));
-        traces.push({
-            x: anos, y: valores, name: fluxo, mode: "lines+markers",
-            line: { color: cor, width: 3 },
-            marker: { size: 8, color: cor, line: { color: BG, width: 2 } },
-            fill: "tozeroy", fillcolor: rgba,
-            customdata: valores.map(fmtUsd),
-            hovertemplate: "<b>%{x}</b><br>" + fluxo + ": %{customdata}<extra></extra>",
-        });
+    function corDinamica(indice) {
+        return PALETA_DINAMICA[indice % PALETA_DINAMICA.length];
     }
-    const layout = layoutBase();
-    layout.title = { text: "Evolu\u00e7\u00e3o Total \u2014 Exporta\u00e7\u00e3o vs Importa\u00e7\u00e3o (USD FOB)", font: { size: 15 } };
-    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
-    layout.yaxis.title = "USD FOB";
-    layout.yaxis.tickformat = "$,.0f";
-    layout.height = 440;
-    Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
-}
 
-// ── Saldo Comercial ───────────────────────────────────────────────────────
-function renderSaldo(divId, ncmSel, anoMin, anoMax, nivel) {
-    const d = filterBase(ncmSel, anoMin, anoMax);
-    if (d.length === 0) {
-        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
-        return;
+    function getDimInfo(nivel) {
+        if (nivel === "Categoria") return { col: "Categoria", order: CATEGORIAS_LIST, colors: CORES_CAT_BASE };
+        return { col: "Label", order: NCMS, colors: CORES_NCM };
     }
-    const { col, order, colors } = getDimInfo(nivel);
-    const traces = [];
-    for (const item of order) {
-        const sub = d.filter(x => x[col] === item);
-        if (sub.length === 0) continue;
-        const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
-        const saldos = anosSet.map(ano => {
-            const exp = sub.filter(x => x.Ano === ano && x.Fluxo === "Exporta\u00e7\u00e3o").reduce((s, x) => s + x.Valor, 0);
-            const imp = sub.filter(x => x.Ano === ano && x.Fluxo === "Importa\u00e7\u00e3o").reduce((s, x) => s + x.Valor, 0);
-            return exp - imp;
-        });
-        if (saldos.every(v => v === 0)) continue;
-        traces.push({
-            x: anosSet, y: saldos, name: item, type: "bar",
-            marker: { color: colors[item], opacity: 0.9 },
-            customdata: saldos.map(fmtUsd),
-            hovertemplate: "<b>" + item + "</b><br>Ano: %{x}<br>Saldo: %{customdata}<extra></extra>",
-        });
+    function unidadeDoItem(col, item) {
+        return col === "Categoria" ? CATEGORIA_UNIDADE[item] : NCM_UNIDADE[item];
     }
-    if (traces.length === 0) {
-        plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
-        return;
-    }
-    const layout = layoutBase();
-    layout.title = {
-        text: nivel === "Categoria"
-            ? "Saldo Comercial por Categoria (Exporta\u00e7\u00e3o \u2212 Importa\u00e7\u00e3o)"
-            : "Saldo Comercial por NCM (Exporta\u00e7\u00e3o \u2212 Importa\u00e7\u00e3o)",
-        font: { size: 15 },
-    };
-    layout.barmode = "group";
-    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
-    layout.yaxis.title = "Saldo (USD FOB)";
-    layout.yaxis.tickformat = "$,.0f";
-    layout.height = 440;
-    layout.shapes = [{ type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
-                       line: { color: TEXTO2, width: 1, dash: "dot" } }];
-    Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
-}
-
-// ── Composição ────────────────────────────────────────────────────────────
-function renderComposicao(divId, fluxo, ncmSel, anoMin, anoMax, nivel) {
-    const d = filterBase(ncmSel, anoMin, anoMax).filter(x => x.Fluxo === fluxo);
-    const total = d.reduce((s, x) => s + x.Valor, 0);
-    if (d.length === 0 || total === 0) {
-        plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros selecionados");
-        return;
-    }
-    const { col, order, colors } = getDimInfo(nivel);
-    const traces = [];
-    for (const item of order) {
-        const sub = d.filter(x => x[col] === item);
-        if (sub.length === 0) continue;
-        const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
-        const valores = anosSet.map(ano => {
-            const v = sub.filter(x => x.Ano === ano).reduce((s, x) => s + x.Valor, 0);
-            return v > 0 ? v : null;
-        });
-        if (valores.every(v => v === null)) continue;
-        const custom = valores.map(v => v ? fmtUsd(v) : "Sem dados");
-        traces.push({
-            x: anosSet, y: valores, name: item, type: "bar",
-            marker: { color: colors[item] },
-            customdata: custom,
-            hovertemplate: "<b>" + item + "</b><br>%{x}: %{customdata}<extra></extra>",
-        });
-    }
-    if (traces.length === 0) {
-        plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros selecionados");
-        return;
-    }
-    const layout = layoutBase();
-    const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
-    layout.title = { text: "Composi\u00e7\u00e3o das " + fluxo + "s por " + nivelTxt, font: { size: 15 } };
-    layout.barmode = "stack";
-    layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
-    layout.yaxis.title = fluxo + " (USD FOB)";
-    layout.yaxis.tickformat = "$,.0f";
-    layout.height = 440;
-    Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
-}
-
-// ── Heatmap ───────────────────────────────────────────────────────────────
-function renderHeatmap(divId, fluxo, ncmSel, nivel) {
-    let d = DATA.filter(x => x.Fluxo === fluxo);
-    if (ncmSel) d = d.filter(x => ncmSel.includes(x.Label));
-    const total = d.reduce((s, x) => s + x.Valor, 0);
-    if (total === 0) {
-        plotVazio(divId, "Nenhum dado de " + fluxo + " para exibir no heatmap");
-        return;
-    }
-    const { col, order, colors } = getDimInfo(nivel);
-    const z = [], text = [];
-    for (const item of order) {
-        const rowZ = [], rowT = [];
-        for (const ano of ANOS) {
-            const v = d.filter(x => x[col] === item && x.Ano === ano).reduce((s, x) => s + x.Valor, 0);
-            rowZ.push(v > 0 ? v : null);
-            rowT.push(v > 0 ? fmtUsd(v) : "\u2014");
+    function agruparPorUnidade(ncmSel) {
+        const grupos = [];
+        for (const unidade of ["Unidades", "kg"]) {
+            const itens = NCMS.filter(l => ncmSel.includes(l) && NCM_UNIDADE[l] === unidade);
+            if (itens.length) grupos.push({ unidade, itens });
         }
-        z.push(rowZ); text.push(rowT);
+        return grupos;
     }
-    const trace = {
-        z: z, x: ANOS.map(String), y: order, type: "heatmap",
-        colorscale: [
-            [0.0, "#1C2128"], [0.15, "#1D4ED8"], [0.4, "#0EA5E9"],
-            [0.65, "#22C55E"], [0.85, "#F59E0B"], [1.0, "#EF4444"],
-        ],
-        text: text, texttemplate: "%{text}",
-        textfont: { size: 9, color: TEXTO },
-        hoverongaps: false,
-        hovertemplate: "<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
-        colorbar: { title: { text: "USD FOB", font: { color: TEXTO2 } },
-                    tickfont: { color: TEXTO2 }, bgcolor: BG2,
-                    bordercolor: BORDA, outlinecolor: BORDA },
-        zmin: 0,
-    };
-    const layout = layoutBase();
-    const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
-    layout.title = { text: "Heatmap \u2014 Intensidade de " + fluxo + "s por " + nivelTxt + " e Ano", font: { size: 15 } };
-    layout.xaxis = { title: "Ano", gridcolor: BORDA, tickfont: { color: TEXTO2 }, dtick: 1, tickangle: -45 };
-    layout.yaxis = { gridcolor: BORDA, tickfont: { color: TEXTO, size: 10 } };
-    layout.margin = { t: 70, b: 60, l: nivel === "NCM" ? 230 : 150, r: 30 };
-    layout.height = 110 + 32 * order.length;
-    Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
-}
 
-// ── Donut ─────────────────────────────────────────────────────────────────
-function renderDonut(divId, fluxo, ano, ncmSel, nivel) {
-    let d = DATA.filter(x => x.Ano === ano && x.Fluxo === fluxo);
-    if (ncmSel) d = d.filter(x => ncmSel.includes(x.Label));
-    if (d.length === 0) {
-        plotVazio(divId, "Nenhum dado de " + fluxo + " em " + ano);
-        return;
+    function somaFobQtd(arr) {
+        let fob = 0, qtd = 0;
+        for (const r of arr) { fob += r.FOB; qtd += r.Quantidade; }
+        return { fob, qtd };
     }
-    const { col, colors } = getDimInfo(nivel);
-    const agg = new Map();
-    for (const item of d) {
-        const key = item[col];
-        agg.set(key, (agg.get(key) || 0) + item.Valor);
+    function valorMetrica(agg, metric) {
+        if (!agg) return null;
+        return metric === "fob" ? agg.fob : agg.qtd;
     }
-    const entries = [...agg.entries()].filter(([, v]) => v > 0);
-    if (entries.length === 0) {
-        plotVazio(divId, "Nenhum dado de " + fluxo + " em " + ano);
-        return;
+    function formatarAgg(agg, metric, unidade) {
+        if (!agg) return "\u2014";
+        return metric === "fob" ? fmtUsd(agg.fob) : fmtQtd(agg.qtd, unidade);
     }
-    const labels = entries.map(e => e[0]);
-    const values = entries.map(e => e[1]);
-    const cores = labels.map(l => colors[l]);
-    const trace = {
-        labels: labels, values: values, type: "pie", hole: 0.48,
-        marker: { colors: cores, line: { color: BG, width: 2 } },
-        textinfo: "percent",
-        textfont: { color: TEXTO, size: 11 },
-        customdata: values.map(fmtUsd),
-        hovertemplate: "<b>%{label}</b><br>%{customdata}<br>%{percent}<extra></extra>",
-    };
-    const layout = layoutBase();
-    delete layout.legend;
-    const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
-    layout.title = { text: "Participa\u00e7\u00e3o nas " + fluxo + "s por " + nivelTxt + " \u2014 " + ano, font: { size: 15 } };
-    layout.showlegend = true;
-    layout.legend = { orientation: "v", x: 1.02, y: 0.5, font: { color: TEXTO, size: 10 } };
-    layout.height = 440;
-    Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
-}
+    function precoMedio(agg) {
+        if (!agg || !agg.qtd) return null;
+        return agg.fob / agg.qtd;
+    }
 
-// ── Estado e wiring dos controles ──────────────────────────────────────────
-function getSelectedNcms() {
-    return [...document.querySelectorAll(".ncm-check:checked")].map(el => el.value);
-}
-function getAnoRange() {
-    const lo = parseInt(document.getElementById("ano-min").value);
-    const hi = parseInt(document.getElementById("ano-max").value);
-    return [Math.min(lo, hi), Math.max(lo, hi)];
-}
-function updateAnoLabel() {
-    const [lo, hi] = getAnoRange();
-    document.getElementById("ano-range-label").textContent = lo + " \u2013 " + hi;
-    const min = parseInt(document.getElementById("ano-min").min);
-    const max = parseInt(document.getElementById("ano-min").max);
-    const pctLo = ((lo - min) / (max - min)) * 100;
-    const pctHi = ((hi - min) / (max - min)) * 100;
-    const fill = document.getElementById("ano-track-fill");
-    fill.style.left = pctLo + "%";
-    fill.style.width = (pctHi - pctLo) + "%";
-}
+    function layoutBase() {
+        return {
+            paper_bgcolor: BG, plot_bgcolor: BG2,
+            font: { family: "Inter, Segoe UI, Arial", color: TEXTO, size: 13 },
+            margin: { t: 36, b: 60, l: 105, r: 30 },
+            xaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
+                    tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
+            yaxis: { gridcolor: BORDA, zerolinecolor: BORDA,
+                    tickfont: { color: TEXTO2 }, title: { font: { color: TEXTO2 } } },
+            legend: { bgcolor: "rgba(0,0,0,0)", bordercolor: BORDA, borderwidth: 1,
+                    font: { color: TEXTO, size: 11 }, orientation: "h",
+                    yanchor: "bottom", y: 1.0, xanchor: "center", x: 0.5 },
+            hoverlabel: { bgcolor: BG3, bordercolor: BORDA, font: { color: TEXTO } },
+        };
+    }
 
-function renderAll() {
-    const ncmSel = getSelectedNcms();
-    const [anoMin, anoMax] = getAnoRange();
+    function plotVazio(divId, msg) {
+        const layout = layoutBase();
+        layout.xaxis.visible = false;
+        layout.yaxis.visible = false;
+        layout.height = 180;
+        layout.margin = { t: 10, b: 10, l: 10, r: 10 };
+        layout.annotations = [{
+            text: "\u26a0  " + msg, x: 0.5, y: 0.5, xref: "paper", yref: "paper",
+            showarrow: false, font: { size: 14, color: TEXTO2 }, align: "center",
+        }];
+        Plotly.newPlot(divId, [], layout, { displayModeBar: true, responsive: true });
+    }
 
-    renderEvolucao("graph-evolucao", ncmSel, anoMin, anoMax);
+    function filterBase(ncmSel, anoMin, anoMax, mesesSel) {
+        return DATA.filter(d =>
+            ncmSel.includes(d.Label) &&
+            d.Ano >= anoMin && d.Ano <= anoMax &&
+            mesesSel.includes(d.MesNum)
+        );
+    }
 
-    const saldoNivel = document.getElementById("saldo-nivel").value;
-    renderSaldo("graph-saldo", ncmSel, anoMin, anoMax, saldoNivel);
+    function gridPeriodos(anoMin, anoMax, mesesSel, granularidade) {
+        if (granularidade === "anual") {
+            return ANOS.filter(a => a >= anoMin && a <= anoMax).map(a => ({ key: a, label: String(a) }));
+        }
+        const out = [];
+        for (const ano of ANOS) {
+            if (ano < anoMin || ano > anoMax) continue;
+            for (const mes of MESES) {
+                if (!mesesSel.includes(mes)) continue;
+                out.push({ key: ano * 100 + mes, label: MES_ABREV[String(mes)] + "/" + ano });
+            }
+        }
+        return out;
+    }
+    function chavePeriodo(registro, granularidade) {
+        return granularidade === "anual" ? registro.Ano : registro.Ano * 100 + registro.MesNum;
+    }
 
-    const compFluxo = document.getElementById("comp-fluxo").value;
-    const compNivel = document.getElementById("comp-nivel").value;
-    renderComposicao("graph-composicao", compFluxo, ncmSel, anoMin, anoMax, compNivel);
+    function montarSubGraficos(containerId, grupos) {
+        const cont = document.getElementById(containerId);
+        const existentes = cont.querySelectorAll(":scope > .sub-chart");
+        if (existentes.length === grupos.length) {
+            return grupos.map((g, i) => {
+                const wrap = existentes[i];
+                let lbl = wrap.querySelector(".sub-chart-label");
+                if (g.label) {
+                    if (!lbl) {
+                        lbl = document.createElement("div");
+                        lbl.className = "sub-chart-label";
+                        wrap.insertBefore(lbl, wrap.firstChild);
+                    }
+                    lbl.textContent = g.label;
+                } else if (lbl) {
+                    lbl.remove();
+                }
+                return wrap.querySelector(".plot-target").id;
+            });
+        }
+        cont.innerHTML = "";
+        return grupos.map((g, i) => {
+            const wrap = document.createElement("div");
+            wrap.className = "sub-chart";
+            if (g.label) {
+                const lbl = document.createElement("div");
+                lbl.className = "sub-chart-label";
+                lbl.textContent = g.label;
+                wrap.appendChild(lbl);
+            }
+            const div = document.createElement("div");
+            div.className = "plot-target";
+            div.id = containerId + "-plot-" + i;
+            wrap.appendChild(div);
+            cont.appendChild(wrap);
+            return div.id;
+        });
+    }
 
-    const hmFluxo = document.getElementById("hm-fluxo").value;
-    const hmNivel = document.getElementById("hm-nivel").value;
-    renderHeatmap("graph-heatmap", hmFluxo, ncmSel, hmNivel);
+    function definirSubtitulo(id, texto) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = texto;
+    }
 
-    const donutFluxo = document.getElementById("donut-fluxo").value;
-    const donutAno = parseInt(document.getElementById("donut-ano").value);
-    const donutNivel = document.getElementById("donut-nivel").value;
-    renderDonut("graph-donut", donutFluxo, donutAno, ncmSel, donutNivel);
-}
+    function plotEvolucao(divId, ncmSel, anoMin, anoMax, mesesSel, metric, unidade) {
+        const d = filterBase(ncmSel, anoMin, anoMax, mesesSel);
+        if (d.length === 0 || ncmSel.length === 0) {
+            plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+            return;
+        }
+        const traces = [];
+        const specs = [[FLUXO_EXP, "#3B82F6", "rgba(59,130,246,0.12)"], [FLUXO_IMP, "#EF4444", "rgba(239,68,68,0.12)"]];
+        let algumDado = false;
+        for (const [fluxo, cor, rgba] of specs) {
+            const sub = d.filter(x => x.Fluxo === fluxo);
+            if (sub.length === 0) continue;
+            const map = new Map();
+            for (const r of sub) {
+                const key = r.Ano * 100 + r.MesNum;
+                const cur = map.get(key) || { fob: 0, qtd: 0 };
+                cur.fob += r.FOB; cur.qtd += r.Quantidade;
+                map.set(key, cur);
+            }
+            const keys = [...map.keys()].sort((a, b) => a - b);
+            if (keys.length === 0) continue;
+            const xs = keys.map(k => MES_ABREV[String(k % 100)] + "/" + Math.floor(k / 100));
+            const ys = keys.map(k => valorMetrica(map.get(k), metric));
+            if (ys.every(v => !v)) continue;
+            algumDado = true;
+            const customdata = keys.map(k => formatarAgg(map.get(k), metric, unidade));
+            traces.push({
+                x: xs, y: ys, name: fluxo, mode: "lines+markers",
+                line: { color: cor, width: 3 },
+                marker: { size: 6, color: cor, line: { color: BG, width: 2 } },
+                fill: "tozeroy", fillcolor: rgba,
+                customdata: customdata,
+                hovertemplate: "<b>%{x}</b><br>" + fluxo + ": %{customdata}<extra></extra>",
+            });
+        }
+        if (!algumDado) {
+            plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+            return;
+        }
+        const layout = layoutBase();
+        layout.xaxis = { ...layout.xaxis, title: "M\u00eas / Ano", tickangle: -60, type: "category" };
+        layout.yaxis.title = metric === "fob" ? "USD FOB" : ("Quantidade (" + unidade + ")");
+        if (metric === "fob") layout.yaxis.tickformat = "$,.0f";
+        layout.height = 420;
+        Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+    }
 
-function toggleSection(key, visible) {
-    const el = document.getElementById("section-" + key);
-    if (el) el.style.display = visible ? "" : "none";
-}
+    function renderEvolucao() {
+        const ncmSel = getSelectedNcms();
+        const [anoMin, anoMax] = getAnoRange();
+        const mesesSel = getSelectedMeses();
+        const metric = document.getElementById("evolucao-metrica").value;
 
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".ncm-check").forEach(el => el.addEventListener("change", renderAll));
-    document.getElementById("ano-min").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
-    document.getElementById("ano-max").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
-    ["comp-fluxo", "comp-nivel", "hm-fluxo", "hm-nivel", "donut-fluxo", "donut-ano", "donut-nivel", "saldo-nivel"]
-        .forEach(id => document.getElementById(id).addEventListener("change", renderAll));
-    document.querySelectorAll(".viz-check").forEach(el => {
-        el.addEventListener("change", () => toggleSection(el.value, el.checked));
+        const grupos = metric === "fob"
+            ? [{ label: null, itens: ncmSel, unidade: null }]
+            : agruparPorUnidade(ncmSel).map(g => ({
+                label: "Quantidade em " + unidadeLabel(g.unidade),
+                itens: g.itens,
+                unidade: g.unidade,
+            }));
+
+        if (grupos.length === 0) {
+            const divIds = montarSubGraficos("graph-evolucao-container", [{ label: null }]);
+            plotVazio(divIds[0], "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+        } else {
+            const divIds = montarSubGraficos("graph-evolucao-container", grupos);
+            divIds.forEach((divId, i) => {
+                const g = grupos[i];
+                plotEvolucao(divId, g.itens, anoMin, anoMax, mesesSel, metric, g.unidade);
+            });
+        }
+        definirSubtitulo("evolucao-subtitle", metricLabel(metric) + " \u2022 Exporta\u00e7\u00e3o vs Importa\u00e7\u00e3o \u2022 mensal");
+    }
+
+    function plotSaldo(divId, ncmSel, anoMin, anoMax, mesesSel, nivel, metric, granularidade) {
+        const d = filterBase(ncmSel, anoMin, anoMax, mesesSel);
+        if (d.length === 0) {
+            plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+            return;
+        }
+        const periodos = gridPeriodos(anoMin, anoMax, mesesSel, granularidade);
+        const { col, order, colors } = getDimInfo(nivel);
+        const traces = [];
+        for (const item of order) {
+            if (metric !== "fob" && unidadeDoItem(col, item) === "Mista") continue;
+            const sub = d.filter(x => x[col] === item);
+            if (sub.length === 0) continue;
+            const unidadeItem = unidadeDoItem(col, item);
+            const xs = [], ys = [], custom = [];
+            for (const p of periodos) {
+                const subP = sub.filter(x => chavePeriodo(x, granularidade) === p.key);
+                const aggExp = somaFobQtd(subP.filter(x => x.Fluxo === FLUXO_EXP));
+                const aggImp = somaFobQtd(subP.filter(x => x.Fluxo === FLUXO_IMP));
+                const saldo = valorMetrica(aggExp, metric) - valorMetrica(aggImp, metric);
+                xs.push(p.label); ys.push(saldo);
+                custom.push(metric === "fob" ? fmtUsd(saldo) : fmtQtd(saldo, unidadeItem));
+            }
+            if (ys.every(v => v === 0)) continue;
+            traces.push({
+                x: xs, y: ys, name: item, type: "bar",
+                marker: { color: colors[item], opacity: 0.9 },
+                customdata: custom,
+                hovertemplate: "<b>" + item + "</b><br>%{x}<br>Saldo: %{customdata}<extra></extra>",
+            });
+        }
+        if (traces.length === 0) {
+            plotVazio(divId, "Nenhuma categoria selecionada ou sem dados no per\u00edodo para essa m\u00e9trica");
+            return;
+        }
+        const layout = layoutBase();
+        layout.barmode = "group";
+        layout.xaxis = { ...layout.xaxis, title: granularidade === "anual" ? "Ano" : "M\u00eas / Ano", type: "category", tickangle: -45 };
+        layout.yaxis.title = "Saldo";
+        if (metric === "fob") layout.yaxis.tickformat = "$,.0f";
+        layout.height = 420;
+        layout.shapes = [{ type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
+                        line: { color: TEXTO2, width: 1, dash: "dot" } }];
+        Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+    }
+
+    function renderSaldo() {
+        const ncmSel = getSelectedNcms();
+        const [anoMin, anoMax] = getAnoRange();
+        const mesesSel = getSelectedMeses();
+        const nivel = document.getElementById("saldo-nivel").value;
+        const metric = document.getElementById("saldo-metrica").value;
+        const granularidade = document.getElementById("saldo-granularidade").value;
+        const divIds = montarSubGraficos("graph-saldo-container", [{ label: null }]);
+        plotSaldo(divIds[0], ncmSel, anoMin, anoMax, mesesSel, nivel, metric, granularidade);
+        const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+        definirSubtitulo("saldo-subtitle", nivelTxt + " \u2022 " + metricLabel(metric) + " \u2022 " + (granularidade === "anual" ? "anual" : "mensal"));
+    }
+
+    function plotComposicao(divId, fluxo, ncmSel, anoMin, anoMax, mesesSel, nivel, metric, granularidade) {
+        const d = filterBase(ncmSel, anoMin, anoMax, mesesSel).filter(x => x.Fluxo === fluxo);
+        if (d.length === 0) {
+            plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros selecionados");
+            return;
+        }
+        const periodos = gridPeriodos(anoMin, anoMax, mesesSel, granularidade);
+        const { col, order, colors } = getDimInfo(nivel);
+        const traces = [];
+        for (const item of order) {
+            if (metric !== "fob" && unidadeDoItem(col, item) === "Mista") continue;
+            const sub = d.filter(x => x[col] === item);
+            if (sub.length === 0) continue;
+            const unidadeItem = unidadeDoItem(col, item);
+            const xs = [], ys = [], custom = [];
+            for (const p of periodos) {
+                const subP = sub.filter(x => chavePeriodo(x, granularidade) === p.key);
+                const agg = somaFobQtd(subP);
+                const v = valorMetrica(agg, metric);
+                xs.push(p.label);
+                ys.push(v > 0 ? v : null);
+                custom.push(v > 0 ? formatarAgg(agg, metric, unidadeItem) : "Sem dados");
+            }
+            if (ys.every(v => v === null)) continue;
+            traces.push({
+                x: xs, y: ys, name: item, type: "bar",
+                marker: { color: colors[item] },
+                customdata: custom,
+                hovertemplate: "<b>" + item + "</b><br>%{x}: %{customdata}<extra></extra>",
+            });
+        }
+        if (traces.length === 0) {
+            plotVazio(divId, "Nenhum dado de " + fluxo + " para os filtros/m\u00e9trica selecionados");
+            return;
+        }
+        const layout = layoutBase();
+        layout.barmode = "stack";
+        layout.xaxis = { ...layout.xaxis, title: granularidade === "anual" ? "Ano" : "M\u00eas / Ano", type: "category", tickangle: -45 };
+        layout.yaxis.title = fluxo + " (" + metricLabel(metric) + ")";
+        if (metric === "fob") layout.yaxis.tickformat = "$,.0f";
+        layout.height = 420;
+        Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+    }
+
+    function renderComposicao() {
+        const ncmSel = getSelectedNcms();
+        const [anoMin, anoMax] = getAnoRange();
+        const mesesSel = getSelectedMeses();
+        const fluxo = document.getElementById("comp-fluxo").value;
+        const nivel = document.getElementById("comp-nivel").value;
+        const metric = document.getElementById("comp-metrica").value;
+        const granularidade = document.getElementById("comp-granularidade").value;
+        const divIds = montarSubGraficos("graph-composicao-container", [{ label: null }]);
+        plotComposicao(divIds[0], fluxo, ncmSel, anoMin, anoMax, mesesSel, nivel, metric, granularidade);
+        const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+        definirSubtitulo("composicao-subtitle", fluxo + " \u2022 " + nivelTxt + " \u2022 " + metricLabel(metric) + " \u2022 " + (granularidade === "anual" ? "anual" : "mensal"));
+    }
+
+    function plotHeatmapTrace(divId, z, text, xLabels, yLabels, xTitle, leftMargin) {
+        const trace = {
+            z: z, x: xLabels, y: yLabels, type: "heatmap",
+            colorscale: [
+                [0.0, "#1C2128"], [0.15, "#1D4ED8"], [0.4, "#0EA5E9"],
+                [0.65, "#22C55E"], [0.85, "#F59E0B"], [1.0, "#EF4444"],
+            ],
+            text: text, texttemplate: "%{text}",
+            textfont: { size: 9, color: TEXTO },
+            hoverongaps: false,
+            hovertemplate: "<b>%{y}</b><br>%{x}: %{text}<extra></extra>",
+            colorbar: { tickfont: { color: TEXTO2 }, bgcolor: BG2,
+                        bordercolor: BORDA, outlinecolor: BORDA },
+            zmin: 0,
+        };
+        const layout = layoutBase();
+        layout.xaxis = { title: xTitle, gridcolor: BORDA, tickfont: { color: TEXTO2 }, tickangle: -45, type: "category" };
+        layout.yaxis = { gridcolor: BORDA, tickfont: { color: TEXTO, size: 10 } };
+        layout.margin = { t: 20, b: 60, l: leftMargin, r: 30 };
+        layout.height = 110 + 32 * yLabels.length;
+        Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
+    }
+
+    function plotHeatmapItens(divId, fluxo, ncmSel, anoMin, anoMax, mesesSel, nivel, metric, granularidade) {
+        const d = filterBase(ncmSel, anoMin, anoMax, mesesSel).filter(x => x.Fluxo === fluxo);
+        if (d.length === 0) {
+            plotVazio(divId, "Nenhum dado de " + fluxo + " para exibir no heatmap");
+            return;
+        }
+        const { col, order, colors } = getDimInfo(nivel);
+        const ordemValida = order.filter(item => metric === "fob" || unidadeDoItem(col, item) !== "Mista");
+        if (ordemValida.length === 0) {
+            plotVazio(divId, "Nenhum item com unidade compat\u00edvel para essa m\u00e9trica");
+            return;
+        }
+        const periodos = gridPeriodos(anoMin, anoMax, mesesSel, granularidade);
+        const z = [], text = [];
+        for (const item of ordemValida) {
+            const unidadeItem = unidadeDoItem(col, item);
+            const rowZ = [], rowT = [];
+            for (const p of periodos) {
+                const agg = somaFobQtd(d.filter(x => x[col] === item && chavePeriodo(x, granularidade) === p.key));
+                const v = valorMetrica(agg, metric);
+                rowZ.push(v > 0 ? v : null);
+                rowT.push(v > 0 ? formatarAgg(agg, metric, unidadeItem) : "\u2014");
+            }
+            z.push(rowZ); text.push(rowT);
+        }
+        plotHeatmapTrace(divId, z, text, periodos.map(p => p.label), ordemValida,
+            granularidade === "anual" ? "Ano" : "M\u00eas / Ano", nivel === "NCM" ? 230 : 150);
+    }
+
+    function plotHeatmapSazonalidade(divId, fluxo, ncmSel, anoMin, anoMax, metric, unidade) {
+        const d = DATA.filter(x => x.Fluxo === fluxo && ncmSel.includes(x.Label) && x.Ano >= anoMin && x.Ano <= anoMax);
+        if (d.length === 0) {
+            plotVazio(divId, "Nenhum dado de " + fluxo + " para exibir no heatmap");
+            return;
+        }
+        const z = [], text = [];
+        for (const mes of MESES) {
+            const rowZ = [], rowT = [];
+            for (const ano of ANOS) {
+                if (ano < anoMin || ano > anoMax) continue;
+                const agg = somaFobQtd(d.filter(x => x.MesNum === mes && x.Ano === ano));
+                const v = valorMetrica(agg, metric);
+                rowZ.push(v > 0 ? v : null);
+                rowT.push(v > 0 ? formatarAgg(agg, metric, unidade) : "\u2014");
+            }
+            z.push(rowZ); text.push(rowT);
+        }
+        const anosFiltrados = ANOS.filter(a => a >= anoMin && a <= anoMax);
+        plotHeatmapTrace(divId, z, text, anosFiltrados.map(String), MESES.map(m => MES_ABREV[String(m)]), "Ano", 90);
+    }
+
+    function renderHeatmap() {
+        const ncmSel = getSelectedNcms();
+        const [anoMin, anoMax] = getAnoRange();
+        const mesesSel = getSelectedMeses();
+        const fluxo = document.getElementById("hm-fluxo").value;
+        const nivel = document.getElementById("hm-nivel").value;
+        const metric = document.getElementById("hm-metrica").value;
+        const eixo = document.getElementById("hm-eixo").value;
+        const granularidade = document.getElementById("hm-granularidade").value;
+
+        document.getElementById("hm-nivel-wrap").style.display = eixo === "mes" ? "none" : "";
+        document.getElementById("hm-granularidade-wrap").style.display = eixo === "mes" ? "none" : "";
+
+        if (eixo === "itens") {
+            const divIds = montarSubGraficos("graph-heatmap-container", [{ label: null }]);
+            plotHeatmapItens(divIds[0], fluxo, ncmSel, anoMin, anoMax, mesesSel, nivel, metric, granularidade);
+            const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+            definirSubtitulo("heatmap-subtitle", fluxo + " \u2022 " + nivelTxt + " \u00d7 " + (granularidade === "anual" ? "Ano" : "M\u00eas/Ano") + " \u2022 " + metricLabel(metric));
+            return;
+        }
+
+        const grupos = metric === "fob"
+            ? [{ label: null, itens: ncmSel, unidade: null }]
+            : agruparPorUnidade(ncmSel).map(g => ({
+                label: "Quantidade em " + unidadeLabel(g.unidade),
+                itens: g.itens,
+                unidade: g.unidade,
+            }));
+
+        if (grupos.length === 0) {
+            const divIds = montarSubGraficos("graph-heatmap-container", [{ label: null }]);
+            plotVazio(divIds[0], "Nenhuma categoria selecionada ou sem dados no per\u00edodo");
+        } else {
+            const divIds = montarSubGraficos("graph-heatmap-container", grupos);
+            divIds.forEach((divId, i) => {
+                const g = grupos[i];
+                plotHeatmapSazonalidade(divId, fluxo, g.itens, anoMin, anoMax, metric, g.unidade);
+            });
+        }
+        definirSubtitulo("heatmap-subtitle", fluxo + " \u2022 Sazonalidade (M\u00eas \u00d7 Ano) \u2022 " + metricLabel(metric));
+    }
+
+    function plotDonut(divId, fluxo, ncmSel, mesesSel, nivel, metric, ano, mes) {
+        let d = DATA.filter(x => x.Ano === ano && x.Fluxo === fluxo && ncmSel.includes(x.Label));
+        d = mes === "todos" ? d.filter(x => mesesSel.includes(x.MesNum)) : d.filter(x => x.MesNum === mes);
+        if (d.length === 0) {
+            plotVazio(divId, "Nenhum dado de " + fluxo + " no per\u00edodo selecionado");
+            return;
+        }
+        const { col, order, colors } = getDimInfo(nivel);
+        const labels = [], values = [], cores = [], units = [];
+        for (const item of order) {
+            if (metric !== "fob" && unidadeDoItem(col, item) === "Mista") continue;
+            const sub = d.filter(x => x[col] === item);
+            if (sub.length === 0) continue;
+            const agg = somaFobQtd(sub);
+            const v = valorMetrica(agg, metric);
+            if (!v || v <= 0) continue;
+            labels.push(item); values.push(v); cores.push(colors[item]); units.push(unidadeDoItem(col, item));
+        }
+        if (labels.length === 0) {
+            plotVazio(divId, "Nenhum dado de " + fluxo + " para essa m\u00e9trica no per\u00edodo selecionado");
+            return;
+        }
+        const trace = {
+            labels: labels, values: values, type: "pie", hole: 0.48,
+            marker: { colors: cores, line: { color: BG, width: 2 } },
+            textinfo: "percent",
+            textfont: { color: TEXTO, size: 11 },
+            customdata: values.map((v, i) => metric === "fob" ? fmtUsd(v) : fmtQtd(v, units[i])),
+            hovertemplate: "<b>%{label}</b><br>%{customdata}<br>%{percent}<extra></extra>",
+        };
+        const layout = layoutBase();
+        delete layout.legend;
+        layout.showlegend = true;
+        layout.legend = { orientation: "v", x: 1.02, y: 0.5, font: { color: TEXTO, size: 10 } };
+        layout.height = 420;
+        Plotly.newPlot(divId, [trace], layout, { displayModeBar: true, responsive: true });
+    }
+
+    function renderDonut() {
+        const ncmSel = getSelectedNcms();
+        const mesesSel = getSelectedMeses();
+        const fluxo = document.getElementById("donut-fluxo").value;
+        const nivel = document.getElementById("donut-nivel").value;
+        const metric = document.getElementById("donut-metrica").value;
+        const ano = parseInt(document.getElementById("donut-ano").value);
+        const mesValor = document.getElementById("donut-mes").value;
+        const mes = mesValor === "todos" ? "todos" : parseInt(mesValor);
+        const divIds = montarSubGraficos("graph-donut-container", [{ label: null }]);
+        plotDonut(divIds[0], fluxo, ncmSel, mesesSel, nivel, metric, ano, mes);
+        const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+        const periodoTxt = mes === "todos" ? String(ano) : (MES_ABREV[String(mes)] + "/" + ano);
+        definirSubtitulo("donut-subtitle", fluxo + " \u2022 " + nivelTxt + " \u2022 " + metricLabel(metric) + " \u2022 " + periodoTxt);
+    }
+
+    function plotPrecoMedio(divId, fluxo, ncmSel, anoMin, anoMax, mesesSel, nivel, unidadeAlvo) {
+        const { col, order } = getDimInfo(nivel);
+        const itensAlvo = order.filter(item => unidadeDoItem(col, item) === unidadeAlvo);
+        if (itensAlvo.length === 0) {
+            plotVazio(divId, "Nenhum item com unidade \"" + unidadeAlvo + "\" nesse n\u00edvel");
+            return;
+        }
+        const d = filterBase(ncmSel, anoMin, anoMax, mesesSel).filter(x => x.Fluxo === fluxo);
+        const traces = [];
+        for (const item of itensAlvo) {
+            const sub = d.filter(x => x[col] === item);
+            if (sub.length === 0) continue;
+            const anosSet = [...new Set(sub.map(x => x.Ano))].sort((a, b) => a - b);
+            const ys = [], custom = [];
+            for (const ano of anosSet) {
+                const agg = somaFobQtd(sub.filter(x => x.Ano === ano));
+                const p = precoMedio(agg);
+                ys.push(p);
+                custom.push(p !== null ? fmtPreco(p, unidadeAlvo) : "Sem dados");
+            }
+            if (ys.every(v => v === null)) continue;
+            const cor = corDinamica(traces.length);
+            traces.push({
+                x: anosSet, y: ys, name: item, mode: "lines+markers",
+                line: { color: cor, width: 2.5 },
+                marker: { size: 7, color: cor, line: { color: BG, width: 1.5 } },
+                customdata: custom,
+                hovertemplate: "<b>" + item + "</b><br>%{x}: %{customdata}<extra></extra>",
+            });
+        }
+        if (traces.length === 0) {
+            plotVazio(divId, "Sem dados de pre\u00e7o m\u00e9dio (" + fluxo + ") para os filtros selecionados");
+            return;
+        }
+        const layout = layoutBase();
+        layout.xaxis = { ...layout.xaxis, title: "Ano", dtick: 1, tickangle: -45 };
+        layout.yaxis.title = "US$ / " + unidadeLabel(unidadeAlvo);
+        layout.height = 420;
+        Plotly.newPlot(divId, traces, layout, { displayModeBar: true, responsive: true });
+    }
+
+    function renderPrecoMedio() {
+        const ncmSel = getSelectedNcms();
+        const [anoMin, anoMax] = getAnoRange();
+        const mesesSel = getSelectedMeses();
+        const fluxo = document.getElementById("preco-fluxo").value;
+        const nivel = document.getElementById("preco-nivel").value;
+        const unidade = document.getElementById("preco-unidade").value;
+        const divIds = montarSubGraficos("graph-preco-container", [{ label: null }]);
+        plotPrecoMedio(divIds[0], fluxo, ncmSel, anoMin, anoMax, mesesSel, nivel, unidade);
+        const nivelTxt = nivel === "Categoria" ? "Categoria" : "NCM";
+        definirSubtitulo("preco-subtitle", fluxo + " \u2022 " + nivelTxt + " \u2022 US$/" + unidadeLabel(unidade) + " \u2022 anual");
+    }
+
+    function getSelectedNcms() {
+        return [...document.querySelectorAll(".ncm-check:checked")].map(el => el.value);
+    }
+    function getSelectedMeses() {
+        const sel = [...document.querySelectorAll(".mes-check:checked")].map(el => parseInt(el.value));
+        return sel.length ? sel : MESES;
+    }
+    function getAnoRange() {
+        const lo = parseInt(document.getElementById("ano-min").value);
+        const hi = parseInt(document.getElementById("ano-max").value);
+        return [Math.min(lo, hi), Math.max(lo, hi)];
+    }
+    function updateAnoLabel() {
+        const [lo, hi] = getAnoRange();
+        document.getElementById("ano-range-label").textContent = lo + " \u2013 " + hi;
+        const min = parseInt(document.getElementById("ano-min").min);
+        const max = parseInt(document.getElementById("ano-min").max);
+        const pctLo = ((lo - min) / (max - min)) * 100;
+        const pctHi = ((hi - min) / (max - min)) * 100;
+        const fill = document.getElementById("ano-track-fill");
+        fill.style.left = pctLo + "%";
+        fill.style.width = (pctHi - pctLo) + "%";
+    }
+
+    function renderAll() {
+        renderEvolucao();
+        renderSaldo();
+        renderComposicao();
+        renderHeatmap();
+        renderDonut();
+        renderPrecoMedio();
+    }
+
+    function toggleSection(key, visible) {
+        const el = document.getElementById("section-" + key);
+        if (el) el.style.display = visible ? "" : "none";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".ncm-check").forEach(el => el.addEventListener("change", renderAll));
+        document.querySelectorAll(".mes-check").forEach(el => el.addEventListener("change", renderAll));
+        document.getElementById("ano-min").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
+        document.getElementById("ano-max").addEventListener("input", () => { updateAnoLabel(); renderAll(); });
+
+        [
+            [["evolucao-metrica"], renderEvolucao],
+            [["saldo-nivel", "saldo-metrica", "saldo-granularidade"], renderSaldo],
+            [["comp-fluxo", "comp-nivel", "comp-metrica", "comp-granularidade"], renderComposicao],
+            [["hm-fluxo", "hm-nivel", "hm-metrica", "hm-eixo", "hm-granularidade"], renderHeatmap],
+            [["donut-fluxo", "donut-nivel", "donut-metrica", "donut-ano", "donut-mes"], renderDonut],
+            [["preco-fluxo", "preco-nivel", "preco-unidade"], renderPrecoMedio],
+        ].forEach(([ids, handler]) => {
+            ids.forEach(id => document.getElementById(id).addEventListener("change", handler));
+        });
+
+        document.querySelectorAll(".viz-check").forEach(el => {
+            el.addEventListener("change", () => toggleSection(el.value, el.checked));
+        });
+        document.getElementById("meses-todos").addEventListener("click", () => {
+            document.querySelectorAll(".mes-check").forEach(el => el.checked = true);
+            renderAll();
+        });
+        document.getElementById("meses-nenhum").addEventListener("click", () => {
+            document.querySelectorAll(".mes-check").forEach(el => el.checked = false);
+            renderAll();
+        });
+
+        updateAnoLabel();
+        renderAll();
     });
-
-    updateAnoLabel();
-    renderAll();
-});
 """
 
     js = (
@@ -1317,8 +918,11 @@ document.addEventListener("DOMContentLoaded", () => {
         .replace("__CATEGORIAS_JSON__", categorias_json)
         .replace("__CORES_NCM_JSON__", cores_ncm_json)
         .replace("__CORES_CAT_JSON__", cores_cat_json)
-        .replace("__LABEL_TO_CAT_JSON__", label_to_cat_json)
         .replace("__ANOS_JSON__", anos_json)
+        .replace("__MESES_JSON__", meses_json)
+        .replace("__MES_ABREV_JSON__", mes_abrev_json)
+        .replace("__NCM_UNIDADE_JSON__", ncm_unidade_json)
+        .replace("__CATEGORIA_UNIDADE_JSON__", categoria_unidade_json)
         .replace("__BG__", BG)
         .replace("__BG2__", BG2)
         .replace("__BG3__", BG3)
@@ -1327,13 +931,20 @@ document.addEventListener("DOMContentLoaded", () => {
         .replace("__TEXTO2__", TEXTO2)
     )
 
-    ano_min, ano_max = int(ANOS[0]), int(ANOS[-1])
+    ano_min, ano_max = ANOS[0], ANOS[-1]
     ano_default = ano_max
 
     def bloco_ncm_checkboxes(cat_nome, ncm_list):
         cor = CATEGORIA_COR_BASE[cat_nome]
         items = "".join(
-            f'<label class="chk"><input type="checkbox" class="ncm-check" value="{LABELS[n]}" checked> {LABELS[n]}</label>'
+            f'<label class="chk"><input type="checkbox" class="ncm-check" value="{LABELS[n]}" checked> '
+            f'{LABELS[n]} <span class="unid-tag">{NCM_UNIDADE.get(LABELS[n], "")}</span>'
+            + (
+                f' <span class="aviso-tag" title="{AVISOS_QUALIDADE[n]}">⚠ 2011–12</span>'
+                if n in AVISOS_QUALIDADE
+                else ""
+            )
+            + "</label>"
             for n in ncm_list
         )
         return f'<div class="ncm-group"><div class="ncm-group-title" style="color:{cor}">{cat_nome}</div>{items}</div>'
@@ -1345,18 +956,54 @@ document.addEventListener("DOMContentLoaded", () => {
     viz_checkboxes = "".join(
         f'<label class="chk"><input type="checkbox" class="viz-check" value="{key}" checked> {label}</label>'
         for key, label in [
-            ("evolucao", "Evolução Total"),
+            ("evolucao", "Evolução Mensal"),
             ("saldo", "Saldo Comercial"),
             ("composicao", "Composição (Exp/Imp)"),
             ("heatmap", "Heatmap"),
             ("donut", "Participação (Donut)"),
+            ("preco", "Preço Médio"),
         ]
     )
-    ano_options = "".join(f'<option value="{int(a)}">{int(a)}</option>' for a in ANOS)
+
+    meses_checkboxes = "".join(
+        f'<label class="chk chk-mes"><input type="checkbox" class="mes-check" value="{m}" checked> {MES_ABREV[m]}</label>'
+        for m in MESES
+    )
+
+    ano_options = "".join(f'<option value="{a}">{a}</option>' for a in ANOS)
+    mes_options = "".join(f'<option value="{m}">{MES_ABREV[m]}</option>' for m in MESES)
+
+    avisos_itens = "".join(
+        f"<li><b>{LABELS[n]}</b> ({n}): {texto}</li>"
+        for n, texto in AVISOS_QUALIDADE.items()
+    )
+    aviso_banner_html = (
+        f"""<div class="aviso-banner">
+      <div class="icone">⚠️</div>
+      <div class="texto">
+        <b>Aviso de qualidade de dados</b> — descontinuidades conhecidas na série, mantidas sem alteração:
+        <ul>{avisos_itens}</ul>
+      </div>
+    </div>"""
+        if AVISOS_QUALIDADE
+        else ""
+    )
 
     nivel_select = """
         <option value="Categoria">Categoria (agrupado)</option>
         <option value="NCM">NCM (detalhado)</option>
+    """
+    fluxo_select = """
+        <option value="Exportação">Exportação</option>
+        <option value="Importação">Importação</option>
+    """
+    metrica_select = """
+        <option value="fob">FOB (US$)</option>
+        <option value="qtd">Quantidade</option>
+    """
+    granularidade_select = """
+        <option value="anual">Anual</option>
+        <option value="mensal">Mensal</option>
     """
 
     page = f"""<!DOCTYPE html>
@@ -1375,18 +1022,34 @@ header p{{color:{TEXTO2};font-size:.82rem;margin-top:5px}}
 header details{{margin-top:8px}}
 header summary{{cursor:pointer;color:{TEXTO2};font-size:.76rem}}
 header details pre{{color:{TEXTO2};font-size:.72rem;margin-top:8px;white-space:pre-wrap;font-family:inherit}}
-main{{max-width:1200px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}}
+main{{max-width:1240px;margin:0 auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}}
 .card{{background:{BG2};border:1px solid {BORDA};border-radius:12px;padding:20px 16px}}
-.card h2{{font-size:.75rem;font-weight:600;color:{TEXTO2};text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}}
+.card-head{{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:2px}}
+.card-head h2{{font-size:.85rem;font-weight:600;color:{TEXTO};text-transform:uppercase;letter-spacing:.5px}}
+.card-head select{{min-width:170px}}
+.card-subtitle{{color:{TEXTO2};font-size:.74rem;margin-bottom:12px}}
 footer{{text-align:center;padding:20px;color:{TEXTO2};font-size:.78rem;border-top:1px solid {BORDA};margin-top:8px}}
 
-.controls{{display:grid;grid-template-columns:1.3fr 2fr 1.2fr;gap:20px;align-items:start}}
+.controls{{display:grid;grid-template-columns:1fr 1.6fr;gap:20px;align-items:start}}
+.controls-row2{{display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;margin-top:18px}}
 .control-group label.title{{display:block;color:{TEXTO2};font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}}
 .chk{{display:flex;align-items:center;gap:6px;font-size:.78rem;cursor:pointer;color:{TEXTO};margin-bottom:4px}}
 .chk input{{accent-color:#3B82F6;cursor:pointer}}
+.unid-tag{{color:{TEXTO2};font-size:.68rem;border:1px solid {BORDA};border-radius:4px;padding:0 4px}}
+.aviso-tag{{color:#F59E0B;font-size:.68rem;border:1px solid #F59E0B;border-radius:4px;padding:0 4px;cursor:help}}
+.aviso-banner{{background:rgba(245,158,11,0.08);border:1px solid #F59E0B;border-radius:12px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start}}
+.aviso-banner .icone{{font-size:1.1rem;line-height:1}}
+.aviso-banner .texto{{font-size:.8rem;color:{TEXTO}}}
+.aviso-banner .texto b{{color:#F59E0B}}
+.aviso-banner ul{{margin:6px 0 0 18px}}
 
 .ncm-groups{{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}}
 .ncm-group-title{{font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}}
+
+.meses-row{{display:flex;flex-wrap:wrap;gap:10px;align-items:center}}
+.chk-mes{{background:{BG3};border:1px solid {BORDA};border-radius:6px;padding:4px 8px;margin-bottom:0}}
+.mini-btn{{background:{BG3};color:{TEXTO2};border:1px solid {BORDA};border-radius:6px;padding:4px 10px;font-size:.72rem;cursor:pointer}}
+.mini-btn:hover{{color:{TEXTO}}}
 
 select{{background:{BG3};color:{TEXTO};border:1px solid {BORDA};border-radius:8px;padding:7px 10px;font-size:.85rem;font-family:inherit;cursor:pointer}}
 select:focus{{outline:1px solid #3B82F6}}
@@ -1403,12 +1066,15 @@ select:focus{{outline:1px solid #3B82F6}}
 
 .inline-controls{{display:flex;gap:12px;margin-bottom:10px;flex-wrap:wrap;align-items:end}}
 .inline-controls .field label{{display:block;color:{TEXTO2};font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}}
+
+.sub-chart + .sub-chart{{margin-top:14px;padding-top:14px;border-top:1px solid {BORDA}}}
+.sub-chart-label{{color:{TEXTO2};font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Comércio Exterior de Armas de Fogo — Brasil (2011–2026)</h1>
+  <h1>Comércio Exterior de Armas de Fogo — Brasil ({ano_min}–{ano_max})</h1>
   <p>{header_html}</p>
   <details>
     <summary>Ver descrição completa dos {len(LABELS)} NCMs</summary>
@@ -1417,6 +1083,8 @@ select:focus{{outline:1px solid #3B82F6}}
 </header>
 
 <main>
+
+  {aviso_banner_html}
 
   <div class="card">
     <div class="controls">
@@ -1427,6 +1095,16 @@ select:focus{{outline:1px solid #3B82F6}}
       <div class="control-group">
         <label class="title">Categorias / NCM</label>
         <div class="ncm-groups">{ncm_checkboxes_html}</div>
+      </div>
+    </div>
+    <div class="controls-row2">
+      <div class="control-group">
+        <label class="title">Meses</label>
+        <div class="meses-row">
+          {meses_checkboxes}
+          <button type="button" class="mini-btn" id="meses-todos">Todos</button>
+          <button type="button" class="mini-btn" id="meses-nenhum">Nenhum</button>
+        </div>
       </div>
       <div class="control-group">
         <label class="title">Intervalo de anos: <span id="ano-range-label"></span></label>
@@ -1441,63 +1119,89 @@ select:focus{{outline:1px solid #3B82F6}}
   </div>
 
   <div class="card" id="section-evolucao">
-    <h2>📈 Evolução Total</h2>
-    <div id="graph-evolucao"></div>
+    <div class="card-head">
+      <h2>📈 Evolução Mensal</h2>
+      <select id="evolucao-metrica">{metrica_select}</select>
+    </div>
+    <div class="card-subtitle" id="evolucao-subtitle"></div>
+    <div id="graph-evolucao-container"></div>
   </div>
 
   <div class="card" id="section-saldo">
-    <h2>⚖️ Saldo Comercial</h2>
+    <div class="card-head">
+      <h2>⚖️ Saldo Comercial</h2>
+      <select id="saldo-metrica">{metrica_select}</select>
+    </div>
+    <div class="card-subtitle" id="saldo-subtitle"></div>
     <div class="inline-controls">
       <div class="field"><label>Nível</label>
         <select id="saldo-nivel">{nivel_select}</select>
       </div>
+      <div class="field"><label>Granularidade</label>
+        <select id="saldo-granularidade">{granularidade_select}</select>
+      </div>
     </div>
-    <div id="graph-saldo"></div>
+    <div id="graph-saldo-container"></div>
   </div>
 
   <div class="card" id="section-composicao">
-    <h2>📦 Composição por Fluxo</h2>
+    <div class="card-head">
+      <h2>📦 Composição por Fluxo</h2>
+      <select id="comp-metrica">{metrica_select}</select>
+    </div>
+    <div class="card-subtitle" id="composicao-subtitle"></div>
     <div class="inline-controls">
       <div class="field"><label>Fluxo</label>
-        <select id="comp-fluxo">
-          <option value="Exportação">Exportação</option>
-          <option value="Importação">Importação</option>
-        </select>
+        <select id="comp-fluxo">{fluxo_select}</select>
       </div>
       <div class="field"><label>Nível</label>
         <select id="comp-nivel">{nivel_select}</select>
       </div>
+      <div class="field"><label>Granularidade</label>
+        <select id="comp-granularidade">{granularidade_select}</select>
+      </div>
     </div>
-    <div id="graph-composicao"></div>
+    <div id="graph-composicao-container"></div>
   </div>
 
   <div class="card" id="section-heatmap">
-    <h2>🌡️ Heatmap de Intensidade</h2>
+    <div class="card-head">
+      <h2>🌡️ Heatmap de Intensidade</h2>
+      <select id="hm-metrica">{metrica_select}</select>
+    </div>
+    <div class="card-subtitle" id="heatmap-subtitle"></div>
     <div class="inline-controls">
       <div class="field"><label>Fluxo</label>
-        <select id="hm-fluxo">
-          <option value="Exportação">Exportação</option>
-          <option value="Importação">Importação</option>
-        </select>
+        <select id="hm-fluxo">{fluxo_select}</select>
       </div>
-      <div class="field"><label>Nível</label>
+      <div class="field" id="hm-nivel-wrap"><label>Nível</label>
         <select id="hm-nivel">
           <option value="NCM">NCM (detalhado)</option>
           <option value="Categoria">Categoria (agrupado)</option>
         </select>
       </div>
+      <div class="field"><label>Eixo</label>
+        <select id="hm-eixo">
+          <option value="itens">Categoria/NCM × Período</option>
+          <option value="mes">Sazonalidade (Mês × Ano)</option>
+        </select>
+      </div>
+      <div class="field" id="hm-granularidade-wrap"><label>Granularidade</label>
+        <select id="hm-granularidade">{granularidade_select}</select>
+      </div>
     </div>
-    <div id="graph-heatmap"></div>
+    <div id="graph-heatmap-container"></div>
   </div>
 
   <div class="card" id="section-donut">
-    <h2>🥧 Participação por Ano</h2>
+    <div class="card-head">
+      <h2>🥧 Participação por Período</h2>
+      <select id="donut-metrica">{metrica_select}</select>
+    </div>
+    <div class="card-subtitle" id="donut-subtitle"></div>
     <div class="inline-controls">
       <div class="field"><label>Fluxo</label>
-        <select id="donut-fluxo">
-          <option value="Exportação">Exportação</option>
-          <option value="Importação">Importação</option>
-        </select>
+        <select id="donut-fluxo">{fluxo_select}</select>
       </div>
       <div class="field"><label>Nível</label>
         <select id="donut-nivel">{nivel_select}</select>
@@ -1505,8 +1209,36 @@ select:focus{{outline:1px solid #3B82F6}}
       <div class="field"><label>Ano</label>
         <select id="donut-ano">{ano_options}</select>
       </div>
+      <div class="field"><label>Mês</label>
+        <select id="donut-mes">
+          <option value="todos">Ano completo</option>
+          {mes_options}
+        </select>
+      </div>
     </div>
-    <div id="graph-donut"></div>
+    <div id="graph-donut-container"></div>
+  </div>
+
+  <div class="card" id="section-preco">
+    <div class="card-head">
+      <h2>💲 Preço Médio (FOB / Quantidade)</h2>
+    </div>
+    <div class="card-subtitle" id="preco-subtitle"></div>
+    <div class="inline-controls">
+      <div class="field"><label>Fluxo</label>
+        <select id="preco-fluxo">{fluxo_select}</select>
+      </div>
+      <div class="field"><label>Nível</label>
+        <select id="preco-nivel">{nivel_select}</select>
+      </div>
+      <div class="field"><label>Unidade</label>
+        <select id="preco-unidade">
+          <option value="Unidades">US$ / unidade (armas)</option>
+          <option value="kg">US$ / kg (munição e partes)</option>
+        </select>
+      </div>
+    </div>
+    <div id="graph-preco-container"></div>
   </div>
 
 </main>
@@ -1525,12 +1257,12 @@ select:focus{{outline:1px solid #3B82F6}}
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(page)
     print(
-        f"✅ docs/index.html gerado — {len(LABELS)} NCMs, {int(ANOS[0])}–{int(ANOS[-1])}"
+        f"docs/index.html gerado — {len(LABELS)} NCMs, dados mensais {ano_min}–{ano_max}"
     )
+    return os.path.abspath("docs/index.html")
 
 
 if __name__ == "__main__":
-    if "--export" in sys.argv:
-        exportar_html_estatico()
-    else:
-        rodar_dash()
+    caminho = gerar_html()
+    if "--export" not in sys.argv:
+        webbrowser.open(f"file://{caminho}")
